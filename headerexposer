@@ -25,23 +25,29 @@ else:
 	print_color('\nAnalyze headers of ' + sys.argv[1] +'\n', 'blue')
 	print('Test occured at : %s' % response.info().get('date'))
 #X-XSS-PROTECTION	
-	if response.info().get('x-xss-protection'):
+	if response.info().get('x-xss-protection') == "1" or response.info().get('x-xss-protection') == "1; mode=block" :	
 		print_color('	[GOOD]	','green')
-		print('X-XSS-PROTECTION found, value : %s ' % response.info().get('x-xss-protection'))
+		print('X-XSS-Protection found, value : %s ' % response.info().get('x-xss-protection'))
+	elif response.info().get('x-xss-protection') :	
+		print_color('	[BAD]	','red')
+		print('X-XSS-Protection found but has wrong value: %s ' % response.info().get('x-xss-protection'))
 	else:
 		print_color('	[BAD]	','red')
-		print('X-XSS-PROTECTION header is missing')
+		print('X-XSS-Protection header is missing')
 #Strict-transport-security 
 	if response.info().get('Strict-transport-security'):
 		print_color('	[GOOD] ','green')
-		print('Strict-transport-security found, value : %s ' % response.info().get('Strict-transport-security'))
+		print('Strict-transport-security found, value: %s ' % response.info().get('Strict-transport-security'))
 	else:
 		print_color('	[BAD]	','red')
 		print('Strict-transport-security header is missing')
 #X-Frame-Options  
-	if response.info().get('X-Frame-Options'):
+	if response.info().get('X-Frame-Options') == "deny":
 		print_color('	[GOOD]	','green')
 		print('X-Frame-Options found, value : %s ' % response.info().get('X-Frame-Options'))
+	elif response.info().get('X-Frame-Options') :	
+		print_color('	[BAD]	','red')
+		print('X-Frame-Options found but has wrong value: %s ' % response.info().get('x-xss-protection'))
 	else:
 		print_color('	[BAD]	','red')
 		print('X-Frame-Options header is missing')
