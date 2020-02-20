@@ -45,6 +45,9 @@ else:
 	if response.info().get('X-Frame-Options') == "deny":
 		print_color('	[GOOD]	','green')
 		print('X-Frame-Options found, value : %s ' % response.info().get('X-Frame-Options'))
+	elif response.info().get('X-Frame-Options') == "SAMEORIGIN":
+		print_color('	[GOOD]	','green')
+		print('X-Frame-Options found, value : %s ' % response.info().get('X-Frame-Options'))	
 	elif response.info().get('X-Frame-Options') :	
 		print_color('	[BAD]	','red')
 		print('X-Frame-Options found but has wrong value: %s ' % response.info().get('X-Frame-Options'))
