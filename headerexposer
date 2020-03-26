@@ -16,7 +16,7 @@ if len(sys.argv) < 2:
 	sys.exit()
 else:
 	url = sys.argv[1]
-	hdr = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
+	hdr = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36' }
 	myssl = ssl.create_default_context();
 	myssl.check_hostname=False
 	myssl.verify_mode=ssl.CERT_NONE
@@ -42,7 +42,7 @@ else:
 		print_color('	[BAD]	','red')
 		print('Strict-transport-security header is missing')
 #X-Frame-Options  
-	if response.info().get('X-Frame-Options') == "deny":
+	if response.info().get('X-Frame-Options') == "DENY":
 		print_color('	[GOOD]	','green')
 		print('X-Frame-Options found, value : %s ' % response.info().get('X-Frame-Options'))
 	elif response.info().get('X-Frame-Options') == "SAMEORIGIN":
@@ -84,17 +84,3 @@ else:
 		print_color('	[BAD]	','red')
 		print('x-powered-by  found, value : %s ' % response.info().get('x-powered-by '))	
 print('Test ended\n')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
