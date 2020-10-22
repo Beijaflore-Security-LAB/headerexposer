@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
 
-import sys
-import urllib.request
-import ssl
+
+import requests
+import argparse
  
-color_map = {'green':'\033[92m','yellow':'\033[93m','red':'\033[91m','blue':'\033[94m',
-             'magenta':'\033[95m'} 
+color_map = {
+        'green':'\033[92m',
+        'yellow':'\033[93m',
+        'red':'\033[91m',
+        'blue':'\033[94m',
+        'magenta':'\033[95m'
+        } 
 			 
 def print_color(text,color):
     print(color_map[color] + text + '\033[0m', end='')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('URL', help="The url to test")
+parser.add_argument('-H', '--header', help="Add one header to the list of headers. May be used multiple times")
+# parser.add_argument('-H', '--headers', help="Add multiple, comma-separated headers to the list of headers")
+parser.add_argument('-c', '--cookie', help="Add a cookie to the cookie jar")
+parser.add_argument('-C', '--cookies', help="Add multiple, comma-separated cookies to the cookie jar")
+parser.add_argument('-k', '--insecure', help="Skip SSL certificate verification")
+parser.add_argument('-v', '--verb', help="HTTP verb to use for the request. Default: GET")
+parser.add_argument('-d', '--data', help="data to append to the request")
+parser.parse_args()
 
 if len(sys.argv) < 2:
 	print('Give me a URL please ')
