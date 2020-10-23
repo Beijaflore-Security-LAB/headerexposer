@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="headerexposer",
-    version="2020.10.dev1",
+    version="2020.10.dev2",
     author="Alexandre Janvrin",
     author_email="alexandre.janvrin@reseau.eseo.fr",
     description="Python3 cmd line tool to scan Security HTTP headers",
