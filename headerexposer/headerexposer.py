@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 
+"""
+The headerexposer module provides function to analyse the security of a
+website's headers
+"""
 
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 from argparse import ArgumentParser
-from sys import exit
-from pprint import pformat
-from textwrap import wrap
-from tabulate import tabulate
-from shutil import get_terminal_size
-from time import gmtime, strftime
-from datetime import timedelta
 from json import loads as json_loads
 import re
+from textwrap import wrap
+from shutil import get_terminal_size
+from functools import partial
+from typing import Any, Optional, Tuple
+import requests
+import urllib3 # type: ignore
+from tabulate import tabulate
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-RATINGS = {
-        "good":   "\033[92m[ＧＯＯＤ]\033[0m",
-        "medium": "\033[93m[ＭＥＤ]\033[0m",
-        "bad":    "\033[91m[ＢＡＤ]\033[0m"
-    }
-
-def special_to_ansi(text):
+def special_to_ansi(text: str) -> str:
+    """
+    This function replaces special tags such as [red] to their corresponding
+    ANSI codes
+    """
     text = text.replace('[red]',       '\033[91m')
     text = text.replace('[green]',     '\033[92m')
     text = text.replace('[yellow]',    '\033[93m')
@@ -31,41 +32,59 @@ def special_to_ansi(text):
     text = text.replace('[underline]', '\033[4m')
     return text.replace('[normal]',    '\033[0m')
 
-def print_special(text):
+def print_special(text: str) -> None:
+    """
+    This function prints a string after replacing its special tags to their
+    corresponding ANSI codes
+    """
     print(special_to_ansi(text))
 
-def colorize(text, color):
-    return special_to_ansi(f"[{color}]{text}[normal]")
-
-def print_color(text, color):
-    print(colorize(text, color))
-
-def tabulate_dict(dict, max_width=None):
+def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
+    """
+    This function formats a dict as a two-columns table, where the first
+    column is the dict keys and the second column is the values.
+    It wraps the value column to not produce a table wider than max_width.
+    """
 
     if max_width is None:
         max_width = get_terminal_size().columns
 
-    max_dict_key_len = 0
-    max_dict_value_len = 0
-    for key, value in dict.items():
+    max_dict_key_len = len(max(dictionary.keys(), key=len))
 
-        try:
-            value_len = len(value)
-        except TypeError:
-            value_len = 4
-        
-        max_dict_value_len = max(max_dict_value_len, value_len)
-        max_dict_key_len = max(max_dict_key_len, len(key))
-
+    # The maximum value width is equal to the maximum dict key width minus the
+    # two spaces between columns minus the '\' that is added to each split
+    # line to make it evident to the user that the line has been split
     max_v_width = max_width - max_dict_key_len - 3
-    
+
+    # To understand this bit of magic one needs to understand the wrap()
+    # function and the "".join() method.
     table = [[str(k), "\\\n".join(wrap(
         str(v), width=max_v_width
-        ))] for k, v in dict.items()]
+        ))] for k, v in dictionary.items()]
 
     return tabulate(table)
 
-def tabulate_findings(findings, max_width=None):
+def find_optimal_column_width(findings: list,
+        max_width: Optional[int] = None) -> Tuple[int, int]:
+    """
+    This function does a bit of wizardry to find the optimal widths of
+    the Value and Explanation columns of a findings table.
+    It compromises between the header names and ratings, which must not be
+    broken, the header values, which must make it clear to the user that
+    they are being broken by printing '\\' at the end of each broken line,
+    the reference links, which must preferably not be broken lest they become
+    unclickable, etc. Everything taking into account that the "tabulate"
+    function separates columns by two spaces.
+    The logic is the following:
+     1) find the maximum length of everyone
+     2) if the values are short, we are in luck and the explanations have more
+     room
+     3) if not, we try to give values and explanations about the same width
+     4) if this breaks the reference links, we try to shrink the header values
+     a bit
+     5) if there is not enough room for the header values, we finally resolve
+     to breaking the links, as there are no other choices
+    """
 
     if max_width is None:
         max_width = get_terminal_size().columns
@@ -75,8 +94,9 @@ def tabulate_findings(findings, max_width=None):
     max_rating_len = 0
     max_reference_len = 0
 
+    # in this loop we get the max width of everyone
     for finding in findings:
-        
+
         try:
             value_len = len(finding["value"])
         except TypeError:
@@ -84,25 +104,45 @@ def tabulate_findings(findings, max_width=None):
 
         max_header_name_len = max(max_header_name_len, len(finding["header"]))
         max_header_value_len = max(max_header_value_len, value_len)
-        max_rating_len = max(max_rating_len, len(RATINGS[finding["rating"]]))
-        
+        max_rating_len = max(max_rating_len, len(finding["rating"]))
+
         for ref in finding["references"]:
             max_reference_len = max(max_reference_len, len(ref))
 
+    # Now we know that the values and explanations will have to share
+    # columns_width characters of space
     columns_width = (max_width - max_header_name_len - max_rating_len - 7)
 
+    # are the values short ? Great, we have room
     if max_header_value_len <= columns_width // 2:
         e_width = columns_width - max_header_value_len - 1
         v_width = max_header_value_len + 1
+
+    # else we try to give everyone the same space
     else:
         v_width = columns_width // 2
         e_width = columns_width // 2
 
-    if max_reference_len > e_width and max_reference_len < columns_width - 10:
-        e_width = max_reference_len
-        v_width = columns_width - e_width
+    # Oops, it breaks the links. Can we give the values a little less space ?
+    # If not, well, we have no choice but to break the links
+    if max_reference_len > e_width:
+        if max_reference_len < columns_width - 10:
+            e_width = max_reference_len
+            v_width = columns_width - e_width
+
+    return e_width, v_width
+
+
+def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
+    """
+    This function formats the findings in a nice table for printing
+    """
 
     findings_table = []
+
+    # for the table to fit on screen we need to know the widths of the
+    # explanation and value columns.
+    e_width, v_width = find_optimal_column_width(findings, max_width)
 
     for finding in findings:
 
@@ -110,141 +150,184 @@ def tabulate_findings(findings, max_width=None):
             value = "Absent"
         else:
             value = "\\\n".join(wrap(finding["value"], width=v_width))
-        
-        rating = RATINGS.get(finding["rating"].lower())
 
+        rating = finding["rating"]
+
+        # To understand this, one needs to know that explanations is a list
+        # of strings that may or may not contain newlines. We first need to
+        # join them around spaces, then split them by newlines, we now have
+        # paragraphs. But these paragraphs now need to be split to smaller
+        # lines that fit in the explanation column width. Once this is done
+        # we again join the lines
         paragraphs = " ".join(finding["explanations"]).splitlines()
         lines = ["\n".join(wrap(p, e_width)) for p in paragraphs]
         explanation = "\n".join(lines)
-        
+
+        # References are annoying because we want them in blue and underlined.
+        # But if we simply apply ANSI codes at the start and end of the
+        # links, the tabulate function will happily produce an ugly table with
+        # long underlined empty spaces. To avoid that we need to split the
+        # lines like we did for the explanations, and apply the codes to the
+        # start and end of each line.
         references = finding["references"]
         if references != []:
             lines = ["\n".join(wrap(r, e_width)) for r in references]
             ref_lines = "\n".join(lines).splitlines()
-            explanation += "\nReferences:\n\033[4;94m"
-            explanation += "\033[0m\n\033[4;94m".join(ref_lines)
-            explanation += "\033[0m"
+            explanation += special_to_ansi("\nReferences:\n[underline][blue]")
+            explanation += special_to_ansi("[normal]\n"
+                    "[underline][blue]").join(ref_lines)
+            explanation += special_to_ansi("[normal]")
 
         findings_table += [[finding["header"], value, rating, explanation]]
 
     table_headers = ["Header", "Value", "Rating", "Explanation"]
     return tabulate(findings_table, headers=table_headers)
 
-def build_request_arguments(
-        url,
-        method             = "GET",
-        params             = None,
-        timeout            = None,
-        disallow_redirects = False,
-        proxy              = None,
-        verify             = False,
-        cert               = None,
-        data               = None,
-        file               = None,
-        headers            = None,
-        user_agent         = None,
-        cookies            = None,
-        username           = None,
-        password           = None
-        ):
+def parse_request_parameters(params: str) -> dict:
+    """
+    This function parses parameters such as "param1=value1&param2=value2"
+    into a dict of parameters
+    """
+    r_params = {}
 
-    if data is not None and file is not None:
-        print("Error in build_request_arguments:"
-                " raise and file arguments are mutually exclusive")
-        exit(1)
+    try:
+        for param in params.strip().split('&'):
 
-    request_arguments = {
-            "method"         : method,
-            "url"            : url,
-            "params"         : None,
-            "data"           : None,
-            "headers"        : {},
-            "cookies"        : None,
-            "auth"           : None,
-            "timeout"        : timeout,
-            "allow_redirects": not disallow_redirects,
-            "proxies"        : {"http": proxy, "https": proxy},
-            "verify"         : verify,
-            "cert"           : cert
-        }
+            p_name = param.split('=')[0].strip()
+            p_value = param.split('=')[1].strip()
 
-    if params is not None:
-        request_arguments["params"] = {}
+            r_params[p_name] = p_value
 
-        try:
-            for p in params.strip().split('&'):
+    except IndexError:
+        print("Parameters must be formatted as couples of values such as"
+                " param1=value1&param2=value2 etc.")
+        print("Bad parameters: " + params)
+        raise
 
-                p_name = p.split('=')[0].strip()
-                p_value = p.split('=')[1].strip()
-                
-                request_arguments["params"][p_name] = p_value
-        
-        except IndexError:
-            print("Parameters must be formatted as couples of values such as"
-                    " param1=value1&param2=value2 etc.")
-            print("Bad parameters: " + params)
-            exit(1)
+    return r_params
 
-    if data is not None:
-        request_arguments['data'] = data.encode()
+def parse_request_headers(headers: str) -> dict:
+    """
+    This function parses headers such as:
+    header1: value1
+    header2: value2
+    into a dict of headers
+    """
+    r_headers = {}
 
-    elif file is not None:
-        with open(file, 'rb') as f:
-            request_arguments['data'] = f.read()
+    try:
+        for header in headers.strip().split('\n'):
 
-    if headers is not None:
+            h_name = header.split(':')[0].strip()
+            h_value = header.split(':')[1].strip()
 
-        try:
-            for h in headers.strip().split('\n'):
+            r_headers[h_name] = h_value
 
-                h_name = h.split(':')[0].strip()
-                h_value = h.split(':')[1].strip()
+    except IndexError:
+        print('Headers must be formatted as couples of values such as'
+                ' "header1: value1"  etc.')
+        print("Bad headers:")
+        print(headers)
+        raise
 
-                request_arguments["headers"][h_name] = h_value
-        
-        except IndexError:
-            print('Headers must be formatted as couples of values such as'
-                    ' "header1: value1"  etc.')
-            print("Bad headers:")
-            print(headers)
-            exit(1)
+    return r_headers
 
-    if user_agent is not None:
-        request_arguments["headers"]["User-Agent"] = user_agent
+def parse_request_cookies(cookies: str) -> dict:
+    """
+    This function parses cookies such as "cookie1=value1; cookie2=value2"
+    into a dict of cookies
+    """
+    r_cookies = {}
 
-    if cookies is not None:
-        request_arguments["cookies"] = {}
-        
-        try:
-            for c in cookies.strip().split(';'):
+    try:
+        for cookie in cookies.strip().split(';'):
 
-                c_name = c.split('=')[0].strip()
-                c_value = c.split('=')[1].strip()
+            c_name = cookie.split('=')[0].strip()
+            c_value = cookie.split('=')[1].strip()
 
-                request_arguments["cookies"][c_name] = c_value
-        
-        except IndexError:
-            print('Cookies must be formatted as couples of values such as'
-                    ' "cookie1=value1; cookie2=value2"  etc.')
-            print("Bad cookies:")
-            print(cookies)
-            exit(1)
+            r_cookies[c_name] = c_value
 
-    if username is not None and password is not None:
-        request_arguments["auth"] = (username, password)
+    except IndexError:
+        print('Cookies must be formatted as couples of values such as'
+                ' "cookie1=value1; cookie2=value2"  etc.')
+        print("Bad cookies:")
+        print(cookies)
+        raise
 
-    return request_arguments
+    return r_cookies
 
-def load_baseline(baseline_path):
-    with open(baseline_path, "rb") as f:
-        baseline_json = f.read()
-        baseline_json = baseline_json.replace(b"[green]", b"\u001b[92m")
-        baseline_json = baseline_json.replace(b"[yellow]", b"\u001b[93m")
-        baseline_json = baseline_json.replace(b"[red]", b"\u001b[91m")
-        baseline_json = baseline_json.replace(b"[normal]", b"\u001b[0m")
+def load_baseline(baseline_path: str) -> dict:
+    """
+    This function load the baseline.json, and replaces special markings
+    such as [green] to their corresponding ANSI codes
+    """
+    with open(baseline_path, "rb") as baseline_file:
+        baseline_json = baseline_file.read()
+        baseline_json = baseline_json.replace(b"[green]", b"\\u001b[92m")
+        baseline_json = baseline_json.replace(b"[yellow]", b"\\u001b[93m")
+        baseline_json = baseline_json.replace(b"[red]", b"\\u001b[91m")
+        baseline_json = baseline_json.replace(b"[normal]", b"\\u001b[0m")
         return json_loads(baseline_json)
 
-def analyse_headers(headers, baseline, short=False):
+def analyse_header(header_value: Any,
+        header_baseline: dict) -> Tuple[str, list]:
+    """
+    This function analyses a single non-None header according to its baseline
+    value.
+    """
+    explanations = []
+
+    if header_baseline.get("case_sensitive_patterns", False):
+        re_compile = partial(re.compile, flags=re.IGNORECASE)
+    else:
+        re_compile = partial(re.compile)
+
+    # First we validate the header. If it does not match the validation
+    # pattern, we ~~yell at the user's face~~stop the analysis and apply
+    # The corresponding rating and explanation.
+    # If it does, we can keep analysing it.
+    v_pattern = re_compile(header_baseline["validation_pattern"])
+
+    if not v_pattern.match(header_value):
+        explanations += [header_baseline["invalid_explanation"]]
+        rating = header_baseline.get("invalid_rating", "bad")
+
+    else:
+        rating = header_baseline.get("default_rating", "bad")
+
+        for r_pattern in header_baseline.get("rating_patterns", []):
+
+            pattern = re_compile(r_pattern["pattern"])
+
+            if pattern.match(header_value):
+                rating = r_pattern["rating"]
+
+        for e_pattern in header_baseline.get("explanation_patterns", []):
+
+            pattern = re_compile(e_pattern["pattern"])
+
+            if pattern.match(header_value):
+                exp = pattern.sub(e_pattern["present"], header_value)
+                explanations += [exp]
+
+            elif e_pattern.get("absent") is not None:
+                explanations += [e_pattern["absent"]]
+
+    return rating, explanations
+
+def analyse_headers(headers: dict, baseline: dict,
+        short: bool = False) -> list:
+    """
+    This function analyses the headers according to the headers to produce
+    a security analysis. Basically, it parses the baseline for regex patterns
+    to identify in the headers' values, and returns the ratings and
+    explanations associated in the baseline
+    """
+    nice_ratings = {
+            "good":   special_to_ansi("[green][ＧＯＯＤ][normal]"),
+            "medium": special_to_ansi("[yellow][ＭＥＤ][normal]"),
+            "bad":    special_to_ansi("[red][ＢＡＤ][normal]")
+        }
 
     findings = []
 
@@ -262,43 +345,8 @@ def analyse_headers(headers, baseline, short=False):
             rating = b_header.get("absent_rating", "bad")
 
         else:
-            case_s_patterns = b_header.get("case_sensitive_patterns", False)
-
-            if case_s_patterns:
-                v_pattern = re.compile(b_header["validation_pattern"])
-            else:
-                v_pattern = re.compile(b_header["validation_pattern"], re.I)
-
-            if not v_pattern.match(header_value):
-                explanations += [b_header["invalid_explanation"]]
-                rating = b_header.get("invalid_rating", "bad")
-
-            else:
-                rating = b_header.get("default_rating", "bad")
-
-                for r_pattern in b_header.get("rating_patterns", []):
-
-                    if case_s_patterns:
-                        pattern = re.compile(r_pattern["pattern"])
-                    else:
-                        pattern = re.compile(r_pattern["pattern"], re.I)
-
-                    if pattern.match(header_value):
-                        rating = r_pattern["rating"]
-
-                for e_pattern in b_header.get("explanation_patterns", []):
-
-                    if case_s_patterns:
-                        pattern = re.compile(e_pattern["pattern"])
-                    else:
-                        pattern = re.compile(e_pattern["pattern"], re.I)
-
-                    if pattern.match(header_value):
-                        exp = pattern.sub(e_pattern["present"], header_value)
-                        explanations += [exp]
-
-                    elif e_pattern.get("absent") is not None:
-                        explanations += [e_pattern["absent"]]
+            rating, h_explanations = analyse_header(header_value, b_header)
+            explanations += h_explanations
 
         if b_header.get("final_explanation") is not None:
             explanations += [b_header["final_explanation"]]
@@ -306,14 +354,17 @@ def analyse_headers(headers, baseline, short=False):
         findings += [{
             "header": header_name,
             "value": header_value,
-            "rating": rating,
+            "rating": nice_ratings[rating],
             "explanations": explanations,
             "references": b_header["references"] if not short else []
             }]
 
     return findings
 
-def main():
+def parse_args() -> Any:
+    """
+    This function parses the comandline arguments
+    """
     parser = ArgumentParser()
 
     parser.add_argument('-m', '--method',
@@ -321,32 +372,32 @@ def main():
             choices=["GET", "OPTIONS", "HEAD", "POST",
                 "PUT", "PATCH", "DELETE"],
             default="GET")
-    
+
     parser.add_argument('--params',
             help="Add multiple, ampersand-separated parameters to the request")
-    
+
     group = parser.add_mutually_exclusive_group()
-    
+
     group.add_argument('-d', '--data',
             help="Data to append to the request."
             " Mutually exclusive with --file")
 
-    group.add_argument('-f', '--file', 
+    group.add_argument('-f', '--file',
             help="Path to a file to append to the request."
             " Mutually exclusive with --data")
-    
+
     parser.add_argument('-H', '--headers',
             help="Add multiple, newline-separated HTTP headers to the request")
-    
+
     parser.add_argument('-C', '--cookies',
             help="Add multiple, semicolon-separated cookies to the request")
-    
+
     parser.add_argument('-U', '--username',
             help="username to use in Basic/Digest/Custom HTTP Authentication")
-    
+
     parser.add_argument('-P', '--password',
             help="password to use in Basic/Digest/Custom HTTP Authentication")
-    
+
     parser.add_argument('-t', '--timeout', type=float,
             help="How many seconds to wait for the server to send data"
             " before giving up, as float")
@@ -354,26 +405,26 @@ def main():
     parser.add_argument('-r', '--disallow-redirects', action="store_true",
             help="Disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection."
             " Defaults to enabled redirection")
-    
+
     parser.add_argument('-p', '--proxy', help="Proxy to use for the request")
-    
+
     parser.add_argument('-k', '--verify', action="store_true",
             help="Verify SSL certificates. Defaults to an insecure behavior")
-    
+
     parser.add_argument('-c', '--cert',
             help="Optional path to the SSL client .pem certificate"
             " for client authentication")
-    
+
     parser.add_argument('-b', '--baseline-path',
             help="Path to the baseline.json file for the header analysis",
             default="baseline.json")
-    
+
     parser.add_argument('-a', '--user-agent',
             help="User Agent to use."
             " Defaults to a recent Google Chrome user agent",
             default="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1"
             " (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1")
-    
+
     parser.add_argument('-s', '--short', action="store_true",
             help="Shorten the output. Do not print the request parameters,"
             " do not print the response details,"
@@ -383,37 +434,63 @@ def main():
             help="The maximum width of the output. Defaults to the screen"
             f" width ({get_terminal_size().columns} columns)",
             default=get_terminal_size().columns)
-    
-    parser.add_argument('url', help="The url to test")
-    
-    args = parser.parse_args()
 
-    request_arguments = build_request_arguments(
-            url                = args.url,
-            method             = args.method,
-            params             = args.params,
-            timeout            = args.timeout,
-            disallow_redirects = args.disallow_redirects,
-            proxy              = args.proxy,
-            verify             = args.verify,
-            cert               = args.cert,
-            data               = args.data,
-            file               = args.file,
-            headers            = args.headers,
-            user_agent         = args.user_agent,
-            cookies            = args.cookies,
-            username           = args.username,
-            password           = args.password
-        )
+    parser.add_argument('url', help="The url to test")
+
+    return parser.parse_args()
+
+def main():
+    """
+    Main function of the module, only called when the module is called
+    directly and not imported
+    """
+    args = parse_args()
+
+    request_arguments = {
+            "method"         : args.method,
+            "url"            : args.url,
+            "params"         : None,
+            "data"           : None,
+            "headers"        : {},
+            "cookies"        : None,
+            "auth"           : None,
+            "timeout"        : args.timeout,
+            "allow_redirects": not args.disallow_redirects,
+            "proxies"        : {"http": args.proxy, "https": args.proxy},
+            "verify"         : args.verify,
+            "cert"           : args.cert
+        }
+
+    if args.params is not None:
+        request_arguments["params"] = parse_request_parameters(args.params)
+
+    if args.data is not None:
+        request_arguments['data'] = args.data.encode()
+
+    elif args.file is not None:
+        with open(args.file, 'rb') as data_file:
+            request_arguments['data'] = data_file.read()
+
+    if args.headers is not None:
+        request_arguments["headers"] = parse_request_headers(args.headers)
+
+    if args.user_agent is not None:
+        request_arguments["headers"]["User-Agent"] = args.user_agent
+
+    if args.cookies is not None:
+        request_arguments["cookies"] = parse_request_cookies(args.cookies)
+
+    if args.username is not None and args.password is not None:
+        request_arguments["auth"] = (args.username, args.password)
 
     if not args.short:
-        print_color("\nRequest parameters:", "blue")
+        print_special("\n[blue]Request parameters:[normal]")
         print(tabulate_dict(request_arguments, args.max_width))
 
     response = requests.request(**request_arguments)
 
     if not args.short:
-        print_color("\nResponse:", "blue")
+        print_special("\n[blue]Response:[normal]")
         print(tabulate_dict({
             "Length": len(response.content),
             "Status Code": response.status_code,
@@ -421,61 +498,16 @@ def main():
             }, args.max_width))
 
     if not args.short:
-        print_color("\nResponse headers:", "blue")
+        print_special("\n[blue]Response headers:[normal]")
         print(tabulate_dict(response.headers, args.max_width))
 
     baseline = load_baseline(args.baseline_path)
 
     findings = analyse_headers(response.headers, baseline, args.short)
 
-    print_color("Header analysis", "blue")
+    print_special("\n[blue]Header analysis:[normal]")
     print(tabulate_findings(findings, args.max_width))
 
-    exit(0)
 
 if __name__ == "__main__":
     main()
-
-#X-XSS-PROTECTION	
-if response.headers.get('x-xss-protection') == "1" or response.headers.get('x-xss-protection') == "1; mode=block" :	
-        print_color('	[GOOD]	','green')
-        print('X-XSS-Protection found, value : %s ' % response.headers.get('x-xss-protection'))
-elif response.headers.get('x-xss-protection') :	
-        print_color('	[BAD]	','red')
-        print('X-XSS-Protection found but has wrong value: %s ' % response.headers.get('x-xss-protection'))
-else:
-        print_color('	[BAD]	','red')
-        print('X-XSS-Protection header is missing')
-#Content-Security-Policy   
-if response.headers.get('Content-Security-Policy'):
-        print_color('	[GOOD]	','green')
-        print('Content-Security-Policy found, value : %s ' % response.headers.get('Content-Security-Policy'))
-else:
-        print_color('	[BAD]	','red')
-        print('Content-Security-Policy header is missing')
-#X-Content-Type-Options   
-if response.headers.get('X-Content-Type-Options'):
-        print_color('	[GOOD]	','green')
-        print('X-Content-Type-Options found, value : %s ' % response.headers.get('X-Content-Type-Options'))
-else:
-        print_color('	[BAD]	','red')
-        print('X-Content-Type-Options header is missing')
-#Cache-control   
-if response.headers.get('Cache-control'):
-        print_color('	[GOOD]	','green')
-        print('Cache-control found, value : %s ' % response.headers.get('Cache-control'))
-else:
-        print_color('	[BAD]	','red')
-        print('Cache-control header is missing')
-#server   
-if response.headers.get('server'):
-        print_color('	[BAD]	','red')
-        print('Server found, value : %s ' % response.headers.get('server'))
-#x-powered-by   
-if response.headers.get('x-powered-by '):
-        print_color('	[BAD]	','red')
-        print('x-powered-by  found, value : %s ' % response.headers.get('x-powered-by '))	
-print('Test ended\n')
-
-print(tabulate([[c.name, "\\\n".join(wrap(c.value)), c.domain, c.path, strftime("%Y-%m-%d %H:%M:%S UTC", gmtime(c.expires)), c.secure, c.has_nonstandard_attr("HttpOnly")] for c in response.cookies], headers=["Name", "Value", "Domain", "Path", "Expires", "Secure", "HttpOnly"]))
-
