@@ -8,16 +8,15 @@ website's headers
 
 from argparse import ArgumentParser
 from json import loads as json_loads
-import re
+from re import compile as regex_compile, IGNORECASE
 from textwrap import wrap
 from shutil import get_terminal_size
 from functools import partial
 from typing import Any, Optional, Tuple
-import requests
-import urllib3 # type: ignore
+from requests import request
+from urllib3 import disable_warnings as urllib3_disable_warnings
+from urllib3.exceptions import InsecureRequestWarning
 from tabulate import tabulate
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def special_to_ansi(text: str) -> str:
     """
@@ -278,9 +277,9 @@ def analyse_header(header_value: Any,
     explanations = []
 
     if header_baseline.get("case_sensitive_patterns", False):
-        re_compile = partial(re.compile, flags=re.IGNORECASE)
+        re_compile = partial(regex_compile)
     else:
-        re_compile = partial(re.compile)
+        re_compile = partial(regex_compile, flags=IGNORECASE)
 
     # First we validate the header. If it does not match the validation
     # pattern, we ~~yell at the user's face~~stop the analysis and apply
@@ -289,7 +288,8 @@ def analyse_header(header_value: Any,
     v_pattern = re_compile(header_baseline["validation_pattern"])
 
     if not v_pattern.match(header_value):
-        explanations += [header_baseline["invalid_explanation"]]
+        explanations += [header_baseline.get("invalid_explanation",
+            special_to_ansi("[red]The header is malformed.[normal]"))]
         rating = header_baseline.get("invalid_rating", "bad")
 
     else:
@@ -341,7 +341,8 @@ def analyse_headers(headers: dict, baseline: dict,
             explanations += [b_header["description"]]
 
         if header_value is None:
-            explanations += [b_header["absent_explanation"]]
+            explanations += [b_header.get("absent_explanation",
+                    special_to_ansi("[red]The header is absent[normal]"))]
             rating = b_header.get("absent_rating", "bad")
 
         else:
@@ -352,11 +353,11 @@ def analyse_headers(headers: dict, baseline: dict,
             explanations += [b_header["final_explanation"]]
 
         findings += [{
-            "header": header_name,
-            "value": header_value,
-            "rating": nice_ratings[rating],
+            "header":       header_name,
+            "value":        header_value,
+            "rating":       nice_ratings[rating],
             "explanations": explanations,
-            "references": b_header["references"] if not short else []
+            "references":   b_header.get("references", []) if not short else []
             }]
 
     return findings
@@ -487,7 +488,8 @@ def main():
         print_special("\n[blue]Request parameters:[normal]")
         print(tabulate_dict(request_arguments, args.max_width))
 
-    response = requests.request(**request_arguments)
+    urllib3_disable_warnings(InsecureRequestWarning)
+    response = request(**request_arguments)
 
     if not args.short:
         print_special("\n[blue]Response:[normal]")
