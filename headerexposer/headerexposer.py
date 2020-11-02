@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-The headerexposer module provides function to analyse the security of a
+The headerexposer module provides functions to analyse the security of a
 website's headers
 """
 
@@ -182,28 +182,44 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
     table_headers = ["Header", "Value", "Rating", "Explanation"]
     return tabulate(findings_table, headers=table_headers)
 
+def string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict:
+    """
+    This function parses a string into a dict by splitting it around
+    delimiters, and eliminating superfluous white spaces.
+
+    For example, "param1: value1; param2: value2" with ':' as delimiter_1 and
+    ';' as delimiter_2 will be parsed into
+    {
+        "param1": "value1",
+        "param2": "value2"
+    }
+    
+    WARNING: This function WILL raise IndexError if the input string
+    cannot be parsed.
+    """
+    result_dict = {}
+    for couple in string.split(delimiter_2):
+
+        key = couple.split(delimiter_1)[0].strip()
+        value = couple.split(delimiter_1)[1].strip()
+
+        result_dict[key] = value
+
+    return result_dict
+
 def parse_request_parameters(params: str) -> dict:
     """
     This function parses parameters such as "param1=value1&param2=value2"
     into a dict of parameters
     """
-    r_params = {}
-
     try:
-        for param in params.strip().split('&'):
-
-            p_name = param.split('=')[0].strip()
-            p_value = param.split('=')[1].strip()
-
-            r_params[p_name] = p_value
+        return string_to_dict(params, '=', '&')
 
     except IndexError:
         print("Parameters must be formatted as couples of values such as"
                 " param1=value1&param2=value2 etc.")
         print("Bad parameters: " + params)
         raise
-
-    return r_params
 
 def parse_request_headers(headers: str) -> dict:
     """
@@ -212,15 +228,8 @@ def parse_request_headers(headers: str) -> dict:
     header2: value2
     into a dict of headers
     """
-    r_headers = {}
-
     try:
-        for header in headers.strip().split('\n'):
-
-            h_name = header.split(':')[0].strip()
-            h_value = header.split(':')[1].strip()
-
-            r_headers[h_name] = h_value
+        return string_to_dict(headers, ':', '\n')
 
     except IndexError:
         print('Headers must be formatted as couples of values such as'
@@ -229,22 +238,13 @@ def parse_request_headers(headers: str) -> dict:
         print(headers)
         raise
 
-    return r_headers
-
 def parse_request_cookies(cookies: str) -> dict:
     """
     This function parses cookies such as "cookie1=value1; cookie2=value2"
     into a dict of cookies
     """
-    r_cookies = {}
-
     try:
-        for cookie in cookies.strip().split(';'):
-
-            c_name = cookie.split('=')[0].strip()
-            c_value = cookie.split('=')[1].strip()
-
-            r_cookies[c_name] = c_value
+        return string_to_dict(cookies, '=', ';')
 
     except IndexError:
         print('Cookies must be formatted as couples of values such as'
@@ -252,8 +252,6 @@ def parse_request_cookies(cookies: str) -> dict:
         print("Bad cookies:")
         print(cookies)
         raise
-
-    return r_cookies
 
 def load_baseline(baseline_path: str) -> dict:
     """
