@@ -1,0 +1,68 @@
+{
+	"$schema": "http://json-schema.org/draft/2019-09/schema#",
+	"$id": "1",
+
+	"definitions": {
+		"rating": {
+			"type": "string",
+			"enum": ["good", "medium", "bad"]
+		},
+		"explanation_pattern": {
+			"type": "object",
+			"properties": {
+				"pattern": {"type": "string", "format": "regex"},
+				"present": {"type": "string"},
+				"absent": {"type": "string"}
+			},
+			"additionalProperties": false,
+			"required": ["pattern", "present"]
+		},
+		"rating_pattern": {
+			"type": "object",
+			"properties": {
+				"pattern": {"type": "string", "format": "regex"},
+				"rating": {"$ref": "#/definitions/rating"}
+			},
+			"additionalProperties": false,
+			"required": ["pattern", "rating"]
+		},
+		"header": {
+			"type": "object",
+			"properties": {
+				"name": {"type": "string"},
+				"description": {"type": "string"},
+				"case_sensitive_patterns": {"type": "boolean"},
+				"validation_pattern": {"type": "string", "format": "regex"},
+				"explanation_patterns": {
+					"type": "array",
+					"items": {"$ref": "#/definitions/explanation_pattern"}
+				},
+				"rating_patterns": {
+					"type": "array",
+					"items": {"$ref": "#/definitions/rating_pattern"}
+				},
+				"default_rating": {"$ref": "#/definitions/rating"},
+				"invalid_rating": {"$ref": "#/definitions/rating"},
+				"absent_rating": {"$ref": "#/definitions/rating"},
+				"absent_explanation": {"type": "string"},
+				"invalid_explanation": {"type": "string"},
+				"final_explanation": {"type": "string"},
+				"references": {
+					"type": "array",
+					"items": {"type": "string", "format": "uri"}
+				}
+			},
+			"required": ["name", "validation_pattern"]
+		}
+	},
+
+	"type": "object",
+	"properties": {
+		"headers": {
+			"type": "array",
+			"items": {"$ref": "#/definitions/header"}
+		}
+	},
+	"additionalProperties": false,
+	"required": ["headers"]
+}
