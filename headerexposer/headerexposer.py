@@ -6,6 +6,7 @@ website's headers
 """
 
 
+from jsonschema import validate as validate_json
 from argparse import ArgumentParser
 from json import loads as json_loads
 from re import compile as regex_compile, IGNORECASE
@@ -255,16 +256,24 @@ def parse_request_cookies(cookies: str) -> dict:
 
 def load_baseline(baseline_path: str) -> dict:
     """
-    This function load the baseline.json, and replaces special markings
-    such as [green] to their corresponding ANSI codes
+    This function loads the baseline.json, replaces special markings
+    such as [green] to their corresponding ANSI codes, and validates it
+    against baseline_schema.json
     """
+    with open("baseline_schema.json") as f:
+        baseline_schema = json_loads(f.read())
+
     with open(baseline_path, "rb") as baseline_file:
         baseline_json = baseline_file.read()
         baseline_json = baseline_json.replace(b"[green]", b"\\u001b[92m")
         baseline_json = baseline_json.replace(b"[yellow]", b"\\u001b[93m")
         baseline_json = baseline_json.replace(b"[red]", b"\\u001b[91m")
         baseline_json = baseline_json.replace(b"[normal]", b"\\u001b[0m")
-        return json_loads(baseline_json)
+        baseline = json_loads(baseline_json)
+
+    validate_json(baseline, baseline_schema)
+
+    return baseline
 
 def analyse_header(header_value: Any,
         header_baseline: dict) -> Tuple[str, list]:
@@ -445,6 +454,8 @@ def main():
     """
     args = parse_args()
 
+    baseline = load_baseline(args.baseline_path)
+
     request_arguments = {
             "method"         : args.method,
             "url"            : args.url,
@@ -500,8 +511,6 @@ def main():
     if not args.short:
         print_special("\n[blue]Response headers:[normal]")
         print(tabulate_dict(response.headers, args.max_width))
-
-    baseline = load_baseline(args.baseline_path)
 
     findings = analyse_headers(response.headers, baseline, args.short)
 
