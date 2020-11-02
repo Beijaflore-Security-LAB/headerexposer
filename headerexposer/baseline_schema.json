@@ -1,6 +1,8 @@
 {
 	"$schema": "http://json-schema.org/draft/2019-09/schema#",
 	"$id": "https://raw.githubusercontent.com/LivinParadoX/headerexposer/master/headerexposer/baseline_schema.json",
+	"title": "Validation and documentation schema for baseline.json",
+	"description": "This schema provides documentation for any baseline.json that may be produced, as it serves to validate that the baseline.json files have the right format",
 
 	"definitions": {
 		"rating": {
@@ -8,16 +10,20 @@
 			"enum": ["good", "medium", "bad"]
 		},
 		"explanation_pattern": {
+			"description": "Explanation patterns determine what is shown to the user next to the rating. It works like this: if the header's value matches against the regular expression \"pattern\", then headerexposer adds the corresponding \"present\" explanation to the explanations. If not, then the optional \"absent\" explanation is added to the explanations.",
+
 			"type": "object",
 			"properties": {
 				"pattern": {"type": "string", "format": "regex"},
 				"present": {"type": "string"},
-				"absent": {"type": "string"}
+				"absent": {"type": "string", "default": null}
 			},
 			"additionalProperties": false,
 			"required": ["pattern", "present"]
 		},
 		"rating_pattern": {
+			"description": "Rating patterns determine the header's rating. If the header's value matches against the regular expression \"pattern\", then the rating takes the value of the corresponding \"rating\".",
+
 			"type": "object",
 			"properties": {
 				"pattern": {"type": "string", "format": "regex"},
@@ -27,32 +33,93 @@
 			"required": ["pattern", "rating"]
 		},
 		"header": {
+			"description": "The baseline headers describe what the headers should be. They are the core of headerexposer's functionality.",
+
 			"type": "object",
 			"properties": {
-				"name": {"type": "string"},
-				"description": {"type": "string"},
-				"case_sensitive_patterns": {"type": "boolean"},
-				"validation_pattern": {"type": "string", "format": "regex"},
+				"name": {
+					"description": "The header's name is what will be retrieved in the HTTP response. It is not case-sensitive, but should nonetheless respect its specification's case.",
+
+					"type": "string"
+				},
+				"description": {
+					"description": "The (optional) description is the first thing a user will see. It should describe the header's purpose, and list the RFC or standard specications. The user can choose not to display this by providing the --short argument to headerexposer.",
+
+					"type": "string",
+					"default": null
+				},
+				"case_sensitive_patterns": {
+					"description": "This tells headerexposer whether patterns must be matched in a case-sensitive manner or not.",
+
+					"type": "boolean",
+					"default": false
+				},
+				"validation_pattern": {
+					"description": "If the header's value does not match this pattern, no further analysis will be made",
+
+					"type": "string",
+					"format": "regex"
+				},
 				"explanation_patterns": {
+					"description": "the list of explanation patterns, which will determine what is printed to the user as explanation. The order is important, as all the generated explanations will be concatenated in a long string after the header's description.",
+
 					"type": "array",
 					"items": {"$ref": "#/definitions/explanation_pattern"},
-					"uniqueItems": true
+					"uniqueItems": true,
+					"default": []
 				},
 				"rating_patterns": {
+					"description": "the list of rating patterns, which will determine the header's rating. The order is important, as the header's rating will be equal to the last matched rating pattern. It is recommended to first list the \"medium\" pattern, then the \"good\" pattern.",
+
 					"type": "array",
 					"items": {"$ref": "#/definitions/rating_pattern"},
-					"uniqueItems": true
+					"uniqueItems": true,
+					"maxItems": 2,
+					"default": []
 				},
-				"default_rating": {"$ref": "#/definitions/rating"},
-				"invalid_rating": {"$ref": "#/definitions/rating"},
-				"absent_rating": {"$ref": "#/definitions/rating"},
-				"absent_explanation": {"type": "string"},
-				"invalid_explanation": {"type": "string"},
-				"final_explanation": {"type": "string"},
+				"default_rating": {
+					"description": "The default rating if no rating pattern matches the header's value.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"invalid_rating": {
+					"description": "The rating if the header's value does not match the validation pattern.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"absent_rating": {
+					"description": "The rating if the header is absent in the HTTP response.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"absent_explanation": {
+					"description": "What to tell the user if the header is absent in the HTTP response.",
+					
+					"type": "string",
+					"default": "[red]The header is absent[normal]"
+				},
+				"invalid_explanation": {
+					"description": "What to tell the user if the header's value does not match the validation pattern.",
+					
+					"type": "string",
+					"default": "[red]The header is malformed.[normal]"
+				},
+				"final_explanation": {
+					"description": "This final bit of text is added to the explanations shown to the user, regardless of the header's rating or value. Usually left null",
+
+					"type": "string",
+					"default": null
+				},
 				"references": {
+					"description": "This list should contain links to any useful documentation the user may want to read. Good links include: the corresponding OWASP secure header page, the OWASP cheat sheet helping developers to prevent the risks that this header is supposed to prevent or protect against, the RFC or standard describing the header, The header's developer.mozilla.org page (as this source is usually up-to-date and lists usually better practices than OWASP, and has nice compatibility tables detailing what is supported or not by major browsers, not just Firefox).",
+
 					"type": "array",
 					"items": {"type": "string", "format": "uri"},
-					"uniqueItems": true
+					"uniqueItems": true,
+					"default": []
 				}
 			},
 			"required": ["name", "validation_pattern"]
