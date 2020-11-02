@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft/2019-09/schema#",
-	"$id": "1",
+	"$id": "https://raw.githubusercontent.com/LivinParadoX/headerexposer/master/headerexposer/baseline_schema.json",
 
 	"definitions": {
 		"rating": {
@@ -35,11 +35,13 @@
 				"validation_pattern": {"type": "string", "format": "regex"},
 				"explanation_patterns": {
 					"type": "array",
-					"items": {"$ref": "#/definitions/explanation_pattern"}
+					"items": {"$ref": "#/definitions/explanation_pattern"},
+					"uniqueItems": true
 				},
 				"rating_patterns": {
 					"type": "array",
-					"items": {"$ref": "#/definitions/rating_pattern"}
+					"items": {"$ref": "#/definitions/rating_pattern"},
+					"uniqueItems": true
 				},
 				"default_rating": {"$ref": "#/definitions/rating"},
 				"invalid_rating": {"$ref": "#/definitions/rating"},
@@ -49,7 +51,8 @@
 				"final_explanation": {"type": "string"},
 				"references": {
 					"type": "array",
-					"items": {"type": "string", "format": "uri"}
+					"items": {"type": "string", "format": "uri"},
+					"uniqueItems": true
 				}
 			},
 			"required": ["name", "validation_pattern"]
@@ -60,7 +63,8 @@
 	"properties": {
 		"headers": {
 			"type": "array",
-			"items": {"$ref": "#/definitions/header"}
+			"items": {"$ref": "#/definitions/header"},
+			"uniqueItems": true
 		}
 	},
 	"additionalProperties": false,
