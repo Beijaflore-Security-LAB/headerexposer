@@ -6,6 +6,7 @@ website's headers
 """
 
 
+from sys import exit as sys_exit
 from jsonschema import validate as validate_json
 from argparse import ArgumentParser
 from json import loads as json_loads
@@ -388,9 +389,60 @@ def analyse_headers(headers: dict, baseline: dict,
 
     return findings
 
+def baseline_demo(baseline: dict,
+        max_width: Optional[int] = get_terminal_size().columns,
+        short: Optional[bool] = False) -> None:
+    """
+    This function showcases the module and shows what would be printed after
+    analysing example headers with the selected baseline.
+    """
+    examples = [
+            {
+                "Strict-Transport-Security": "max-age=31536000;"
+                " includeSubDomains",
+                "X-Frame-Options": "DENY"
+                },
+            {
+                "Strict-Transport-Security": "max-age=potato;"
+                " includeSubDomains",
+                "X-Frame-Options": "Gloubiboulga"
+                },
+            {
+                "Strict-Transport-Security": "max-age=2006;"
+                " includeSubDomains; preload",
+                "X-Frame-Options": "ALLOW-FROM china"
+                },
+            {
+                "Strict-Transport-Security": "max-age=0;"
+                " preload",
+                "X-Frame-Options": "SAMEORIGIN"
+                },
+            {
+                "Strict-Transport-Security": "max-age=31536000;"
+                " includeSubDomains; preload",
+                "X-Frame-Options": "DENIS"
+                },
+            {
+                "Strict-Transport-Security": "includeSubDomains; preload",
+                "X-Frame-Options": "SAMEORANGINA"
+                },
+            {
+                },
+            ]
+    
+    for ex_number in range(len(examples)):
+
+        headers = examples[ex_number]
+        findings = analyse_headers(headers, baseline, short)
+
+        print_special(f"\n[blue]Example {ex_number} headers analysis:[normal]")
+        print(tabulate_findings(findings, max_width))
+
+    sys_exit(0)
+
 def parse_args() -> Any:
     """
-    This function parses the comandline arguments
+    This function parses the commandline arguments
     """
     parser = ArgumentParser()
 
@@ -457,6 +509,11 @@ def parse_args() -> Any:
             " do not print the response details,"
             " do not print headers' descriptions, do not print references.")
 
+    parser.add_argument('--baseline-demo', action="store_true",
+            help="Activates baseline demo mode. No request will be sent."
+            "instead, the currently selected baseline will be applied"
+            "to a set of examples.")
+
     parser.add_argument('-w', '--max-width', type=int,
             help="The maximum width of the output. Defaults to the screen"
             f" width ({get_terminal_size().columns} columns)",
@@ -477,6 +534,9 @@ def main():
 
     if not args.short:
         print(BANNER)
+
+    if args.baseline_demo:
+        baseline_demo(baseline, args.max_width, args.short)
 
     request_arguments = {
             "method"         : args.method,
@@ -519,7 +579,9 @@ def main():
         print_special("[blue]Request parameters:[normal]")
         print(tabulate_dict(request_arguments, args.max_width))
 
-    urllib3_disable_warnings(InsecureRequestWarning)
+    if not args.verify:
+        urllib3_disable_warnings(InsecureRequestWarning)
+
     response = request(**request_arguments)
 
     if not args.short:
@@ -536,7 +598,7 @@ def main():
 
     findings = analyse_headers(response.headers, baseline, args.short)
 
-    print_special("\n[blue]Header analysis:[normal]")
+    print_special("\n[blue]Headers analysis:[normal]")
     print(tabulate_findings(findings, args.max_width))
 
 

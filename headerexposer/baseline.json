@@ -81,7 +81,7 @@
 			"default_rating": "bad",
 			"absent_rating": "bad",
 			"invalid_rating": "bad",
-			"absent_explanation": "[red]The header is absent. [yellow]If a CSP frame-ancestors directive is used, this can be safely ignored.[normal]",
+			"absent_explanation": "[red]The header is absent. [yellow]If a CSP frame-ancestors directive is used, this can be safely ignored. [red] If not, the CSP frame-ancestors directive should be used.[normal]",
 			"invalid_explanation": "[red]The header is malformed. The CSP frame-ancestors directive should be used instead.[normal]",
 			"references": [
 				"https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html"
