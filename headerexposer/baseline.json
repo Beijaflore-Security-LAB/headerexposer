@@ -12,21 +12,21 @@
 				},
 				{
 					"pattern": "^.*?max-age\\s*?=\\s*?\"?0\"?.*?$",
-					"present": "[red]This header specifies a max-age of 0 seconds. It is worse than not specifying the header, because it actively tells the user's browser to remove its cached HSTS Policy information for this website!"
+					"present": "[red]This header specifies a max-age of 0 seconds. It is worse than not specifying the header, because it actively tells the user's browser to remove its cached HSTS Policy information for this website! it is recommended to set the max-age property to 31536000 seconds (1 year)."
 				},
 				{
 					"pattern": "^.*?max-age\\s*?=\\s*?\"?([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-8][0-9]{4}|9[0-8][0-9]{3}|99[0-8][0-9]{2}|999[0-8][0-9]|9999[0-9]|[1-8][0-9]{5}|9[0-8][0-9]{4}|99[0-8][0-9]{3}|999[0-8][0-9]{2}|9999[0-8][0-9]|99999[0-9]|[1-8][0-9]{6}|9[0-8][0-9]{5}|99[0-8][0-9]{4}|999[0-8][0-9]{3}|9999[0-8][0-9]{2}|99999[0-8][0-9]|999999[0-9]|[12][0-9]{7}|30[0-9]{6}|31[0-4][0-9]{5}|315[0-2][0-9]{4}|3153[0-4][0-9]{3}|31535[0-8][0-9]{2}|315359[0-8][0-9]|3153599[0-9])\"?\\s*?(;.*?)?$",
-					"present": "[yellow]This header tells the user's browser that this site is only to be accessed using HTTPS during the next \\1 seconds. This is shorter than the recommendend value of 31536000 seconds (1 year)."
+					"present": "[yellow]This header tells the user's browser that this site is only to be accessed using HTTPS during the next \\1 seconds. This is shorter than the recommended value of 31536000 seconds (1 year)."
 				},
 				{
 					"pattern": "^(.*?;)?\\s*?includeSubDomains\\s*?(;.*?)?$",
 					"present": "As \"includeSubDomains\" is specified, this rule applies to all of the site's subdomains as well.[normal]",
-					"absent": "[yellow]As \"includeSubDomains\" is not specified, this rule does not apply to the site's subdomains. It is recommendend to specify \"includeSubDomains\" as well.[normal]"
+					"absent": "[yellow]As \"includeSubDomains\" is not specified, this rule does not apply to the site's subdomains. It is recommended to specify \"includeSubDomains\" as well.[normal]"
 				},
 				{
 					"pattern": "^(.*?;)?\\s*?preload\\s*?(;.*?)?$",
 					"present": "[green]The \"preload\" directive enables HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. The website must still have been submitted to the public HSTS preloading lists.[normal]",
-					"absent": "[yellow]The \"preload\" directive is absent, and HSTS preloading is not enabled. It is recommendend to enable HSTS preloading and submit the website to the public HSTS preloading lists.[normal]"
+					"absent": "[yellow]The \"preload\" directive is absent, and HSTS preloading is not enabled. It is recommended to enable HSTS preloading and submit the website to the public HSTS preloading lists.[normal]"
 				}
 			],
 			"rating_patterns": [
@@ -42,7 +42,7 @@
 			"default_rating": "bad",
 			"absent_rating": "bad",
 			"invalid_rating": "bad",
-			"absent_explanation": "[red]The header is absent.[normal]",
+			"absent_explanation": "[red]The header is absent. [normal]It is recommended to set the header's value to \"[blue]max-age=31536000; includeSubDomains; preload[normal]\". This will tell users' browsers that this site is only to be accessed using HTTPS during the next 31536000 seconds (1 year), that this also applies to all of the site's subdomains, and it will enable HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. [blue]For HSTS preloading to work properly, the website must be submitted to the public HSTS preloading lists.[normal]",
 			"invalid_explanation": "[red]This header is malformed and does not specify a max-age property or the property is invalid.[normal]",
 			"final_explanation": "[normal]",
 			"references": [

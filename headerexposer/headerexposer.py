@@ -19,18 +19,42 @@ from urllib3 import disable_warnings as urllib3_disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from tabulate import tabulate
 
-def special_to_ansi(text: str) -> str:
+BANNER = "".join([
+    "\n \033[1;34;94m┌───────────────\033[34m────────────────\033[37m────────",
+    "────────\033[1;30;90m─────┐\033[0m\n \033[1;34;94m│░█░█░█▀\033[34m▀░█▀█░",
+    "█▀▄░█▀▀░█▀\033[37m▄░█▀▀░█░█░█▀█░█▀\033[1;30;90m█░█▀▀░█▀▀░█▀▄│\033[0m\n ",
+    "\033[34m│░█▀█░█▀▀░█▀█░█░\033[37m█░█▀▀░█▀▄░█▀▀░▄▀\033[1;30;90m▄░█▀▀░█░█░▀",
+    "▀█░█▀\033[1;34;94m▀░█▀▄│\033[0m\n \033[34m│░▀░▀░▀▀\033[37m▀░▀░▀░▀▀░░▀▀▀░",
+    "▀░\033[1;30;90m▀░▀▀▀░▀░▀░▀░░░▀▀\033[1;34;94m▀░▀▀▀░▀▀▀░▀░▀│\033[0m\n \033",
+    "[37m└───────────────\033[1;30;90m────────────────\033[1;34;94m──────────",
+    "──────\033[34m─────┘\033[0m\n"
+    ])
+
+def special_to_ansi(string: str) -> str:
     """
     This function replaces special tags such as [red] to their corresponding
     ANSI codes
     """
-    text = text.replace('[red]',       '\033[91m')
-    text = text.replace('[green]',     '\033[92m')
-    text = text.replace('[yellow]',    '\033[93m')
-    text = text.replace('[blue]',      '\033[94m')
-    text = text.replace('[magenta]',   '\033[95m')
-    text = text.replace('[underline]', '\033[4m')
-    return text.replace('[normal]',    '\033[0m')
+    string = string.replace('[red]',       '\033[91m')
+    string = string.replace('[green]',     '\033[92m')
+    string = string.replace('[yellow]',    '\033[93m')
+    string = string.replace('[blue]',      '\033[94m')
+    string = string.replace('[magenta]',   '\033[95m')
+    string = string.replace('[underline]', '\033[4m')
+    return string.replace('[normal]',    '\033[0m')
+
+def b_special_to_ansi(bstring: bytes) -> bytes:
+    """
+    This function replaces special tags such as [red] to their corresponding
+    ANSI codes
+    """
+    bstring = bstring.replace(b'[red]',       b'\\u001b[91m')
+    bstring = bstring.replace(b'[green]',     b'\\u001b[92m')
+    bstring = bstring.replace(b'[yellow]',    b'\\u001b[93m')
+    bstring = bstring.replace(b'[blue]',      b'\\u001b[94m')
+    bstring = bstring.replace(b'[magenta]',   b'\\u001b[95m')
+    bstring = bstring.replace(b'[underline]', b'\\u001b[4m')
+    return bstring.replace(b'[normal]',    b'\\u001b[0m')
 
 def print_special(text: str) -> None:
     """
@@ -264,12 +288,7 @@ def load_baseline(baseline_path: str) -> dict:
         baseline_schema = json_loads(f.read())
 
     with open(baseline_path, "rb") as baseline_file:
-        baseline_json = baseline_file.read()
-        baseline_json = baseline_json.replace(b"[green]", b"\\u001b[92m")
-        baseline_json = baseline_json.replace(b"[yellow]", b"\\u001b[93m")
-        baseline_json = baseline_json.replace(b"[red]", b"\\u001b[91m")
-        baseline_json = baseline_json.replace(b"[normal]", b"\\u001b[0m")
-        baseline = json_loads(baseline_json)
+        baseline = json_loads(b_special_to_ansi(baseline_file.read()))
 
     validate_json(baseline, baseline_schema)
 
@@ -456,6 +475,9 @@ def main():
 
     baseline = load_baseline(args.baseline_path)
 
+    if not args.short:
+        print(BANNER)
+
     request_arguments = {
             "method"         : args.method,
             "url"            : args.url,
@@ -494,7 +516,7 @@ def main():
         request_arguments["auth"] = (args.username, args.password)
 
     if not args.short:
-        print_special("\n[blue]Request parameters:[normal]")
+        print_special("[blue]Request parameters:[normal]")
         print(tabulate_dict(request_arguments, args.max_width))
 
     urllib3_disable_warnings(InsecureRequestWarning)
