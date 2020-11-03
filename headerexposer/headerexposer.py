@@ -27,11 +27,11 @@ from re import compile as regex_compile, IGNORECASE
 from textwrap import wrap
 from shutil import get_terminal_size
 from functools import partial
-from typing import Any, Optional, Tuple, Union
-from jsonschema import validate as validate_json
+from typing import Any, Optional, Tuple
+from jsonschema import validate as validate_json # type: ignore
 from requests import request
-from urllib3 import disable_warnings as urllib3_disable_warnings
-from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings as urllib3_disable_warnings # type: ignore
+from urllib3.exceptions import InsecureRequestWarning # type: ignore
 from tabulate import tabulate
 
 _BANNER = "".join([
@@ -46,43 +46,50 @@ _BANNER = "".join([
     "─────┘\u001b[0m\n"
     ])
 
-def special_to_ansi(string: Union[str, bytes],
-        no_colors : Optional[bool] = False) -> Union[str, bytes]:
+_SPECIALS = {
+        "[red]":       91,
+        "[green]":     92,
+        "[yellow]":    93,
+        "[blue]":      94,
+        "[magenta]":   95,
+        "[underline]": 4,
+        "[normal]":    0
+    }
+
+def special_to_ansi(string: str,
+        no_colors : Optional[bool] = False) -> str:
     """
     This function replaces special tags such as [red] to their corresponding
-    ANSI codes in strings and bytestrings
+    ANSI codes in strings
     if the global variable _no_color_mode is True, then it will simply remove
     the tags.
     """
-
-    specials = {
-            "[red]":       91,
-            "[green]":     92,
-            "[yellow]":    93,
-            "[blue]":      94,
-            "[magenta]":   95,
-            "[underline]": 4,
-            "[normal]":    0
-        }
-
-    if isinstance(string, str):
-        if no_colors:
-            for special, code in specials.items():
-                string = string.replace(special, '')
-        else:
-            for special, code in specials.items():
-                string = string.replace(special, f"\033[{code}m")
-
-    elif isinstance(string, bytes):
-        if no_colors:
-            for special, code in specials.items():
-                string = string.replace(special.encode(), b'')
-        else:
-            for special, code in specials.items():
-                string = string.replace(special.encode(),
-                        f"\\u001b[{code}m".encode())
+    if no_colors:
+        for special, code in _SPECIALS.items():
+            string = string.replace(special, '')
+    else:
+        for special, code in _SPECIALS.items():
+            string = string.replace(special, f"\033[{code}m")
 
     return string
+
+def b_special_to_ansi(bstring: bytes,
+        no_colors: Optional[bool] = False) -> bytes:
+    """
+    This function replaces special tags such as [red] to their corresponding
+    ANSI codes in bytestrings
+    if the global variable _no_color_mode is True, then it will simply remove
+    the tags.
+    """
+    if no_colors:
+        for special, code in _SPECIALS.items():
+            bstring = bstring.replace(special.encode(), b'')
+    else:
+        for special, code in _SPECIALS.items():
+            bstring = bstring.replace(special.encode(),
+                    f"\\u001b[{code}m".encode())
+
+    return bstring
 
 def print_special(text: str) -> None:
     """
@@ -317,7 +324,8 @@ def load_baseline(baseline_path: str,
         baseline_schema = json_loads(baseline_schema_file.read())
 
     with open(baseline_path, "rb") as baseline_file:
-        baseline = json_loads(special_to_ansi(baseline_file.read(), no_colors))
+        baseline = json_loads(b_special_to_ansi(baseline_file.read(),
+                                                no_colors))
 
     validate_json(baseline, baseline_schema)
 

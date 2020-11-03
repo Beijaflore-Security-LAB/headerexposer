@@ -42,9 +42,9 @@
 			"default_rating": "bad",
 			"absent_rating": "bad",
 			"invalid_rating": "bad",
-			"absent_explanation": "[red]The header is absent. [normal]It is recommended to set the header's value to \"[blue]max-age=31536000; includeSubDomains; preload[normal]\". This will tell users' browsers that this site is only to be accessed using HTTPS during the next 31536000 seconds (1 year), that this also applies to all of the site's subdomains, and it will enable HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. [blue]For HSTS preloading to work properly, the website must be submitted to the public HSTS preloading lists.[normal]",
-			"invalid_explanation": "[red]This header is malformed and does not specify a max-age property or the property is invalid. [normal]It is recommended to set the header's value to \"[blue]max-age=31536000; includeSubDomains; preload[normal]\". This will tell users' browsers that this site is only to be accessed using HTTPS during the next 31536000 seconds (1 year), that this also applies to all of the site's subdomains, and it will enable HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. [blue]For HSTS preloading to work properly, the website must be submitted to the public HSTS preloading lists.[normal]",
-			"final_explanation": "[normal]",
+			"absent_explanation": "[red]The header is absent. [normal]",
+			"invalid_explanation": "[red]This header is malformed and does not specify a max-age property or the property is invalid. [normal]",
+			"absent_or_invalid_explanation": "It is recommended to set the header's value to \"[blue]max-age=31536000; includeSubDomains; preload[normal]\". This will tell users' browsers that this site is only to be accessed using HTTPS during the next 31536000 seconds (1 year), that this also applies to all of the site's subdomains, and it will enable HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. [blue]For HSTS preloading to work properly, the website must be submitted to the public HSTS preloading lists.[normal]",
 			"references": [
 				"https://tools.ietf.org/html/rfc6797",
 				"https://owasp.org/www-project-secure-headers/#http-strict-transport-security-hsts",
