@@ -5,57 +5,84 @@ The headerexposer module provides functions to analyse the security of a
 website's headers
 """
 
+__all__ = [
+        "special_to_ansi",
+        "print_special",
+        "tabulate_dict",
+        "tabulate_findings",
+        "string_to_dict",
+        "parse_request_cookies",
+        "parse_request_headers",
+        "parse_request_parameters",
+        "load_baseline",
+        "analyse_header",
+        "analyse_headers"
+    ]
+__version__ = "2020.10.dev3"
+__author__ = "Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr)"
 
-from sys import exit as sys_exit
-from jsonschema import validate as validate_json
 from argparse import ArgumentParser
 from json import loads as json_loads
 from re import compile as regex_compile, IGNORECASE
 from textwrap import wrap
 from shutil import get_terminal_size
 from functools import partial
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
+from jsonschema import validate as validate_json
 from requests import request
 from urllib3 import disable_warnings as urllib3_disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from tabulate import tabulate
 
-BANNER = "".join([
-    "\n \033[1;34;94m┌───────────────\033[34m────────────────\033[37m────────",
-    "────────\033[1;30;90m─────┐\033[0m\n \033[1;34;94m│░█░█░█▀\033[34m▀░█▀█░",
-    "█▀▄░█▀▀░█▀\033[37m▄░█▀▀░█░█░█▀█░█▀\033[1;30;90m█░█▀▀░█▀▀░█▀▄│\033[0m\n ",
-    "\033[34m│░█▀█░█▀▀░█▀█░█░\033[37m█░█▀▀░█▀▄░█▀▀░▄▀\033[1;30;90m▄░█▀▀░█░█░▀",
-    "▀█░█▀\033[1;34;94m▀░█▀▄│\033[0m\n \033[34m│░▀░▀░▀▀\033[37m▀░▀░▀░▀▀░░▀▀▀░",
-    "▀░\033[1;30;90m▀░▀▀▀░▀░▀░▀░░░▀▀\033[1;34;94m▀░▀▀▀░▀▀▀░▀░▀│\033[0m\n \033",
-    "[37m└───────────────\033[1;30;90m────────────────\033[1;34;94m──────────",
-    "──────\033[34m─────┘\033[0m\n"
+_BANNER = "".join([
+    "\n \u001b[1;34;94m┌───────────────\u001b[34m────────────────\u001b[37m──",
+    "──────────────\u001b[1;30;90m─────┐\u001b[0m\n \u001b[1;34;94m│░█░█░█▀",
+    "\u001b[34m▀░█▀█░█▀▄░█▀▀░█▀\u001b[37m▄░█▀▀░█░█░█▀█░█▀\u001b[1;30;90m█░█▀▀",
+    "░█▀▀░█▀▄│\u001b[0m\n \u001b[34m│░█▀█░█▀▀░█▀█░█░\u001b[37m█░█▀▀░█▀▄░█▀▀░▄",
+    "▀\u001b[1;30;90m▄░█▀▀░█░█░▀▀█░█▀\u001b[1;34;94m▀░█▀▄│\u001b[0m\n \u001b[",
+    "34m│░▀░▀░▀▀\u001b[37m▀░▀░▀░▀▀░░▀▀▀░▀░\u001b[1;30;90m▀░▀▀▀░▀░▀░▀░░░▀▀",
+    "\u001b[1;34;94m▀░▀▀▀░▀▀▀░▀░▀│\u001b[0m\n \u001b[37m└───────────────",
+    "\u001b[1;30;90m────────────────\u001b[1;34;94m────────────────\u001b[34m",
+    "─────┘\u001b[0m\n"
     ])
 
-def special_to_ansi(string: str) -> str:
+def special_to_ansi(string: Union[str, bytes],
+        no_colors : Optional[bool] = False) -> Union[str, bytes]:
     """
     This function replaces special tags such as [red] to their corresponding
-    ANSI codes
+    ANSI codes in strings and bytestrings
+    if the global variable _no_color_mode is True, then it will simply remove
+    the tags.
     """
-    string = string.replace('[red]',       '\033[91m')
-    string = string.replace('[green]',     '\033[92m')
-    string = string.replace('[yellow]',    '\033[93m')
-    string = string.replace('[blue]',      '\033[94m')
-    string = string.replace('[magenta]',   '\033[95m')
-    string = string.replace('[underline]', '\033[4m')
-    return string.replace('[normal]',    '\033[0m')
 
-def b_special_to_ansi(bstring: bytes) -> bytes:
-    """
-    This function replaces special tags such as [red] to their corresponding
-    ANSI codes
-    """
-    bstring = bstring.replace(b'[red]',       b'\\u001b[91m')
-    bstring = bstring.replace(b'[green]',     b'\\u001b[92m')
-    bstring = bstring.replace(b'[yellow]',    b'\\u001b[93m')
-    bstring = bstring.replace(b'[blue]',      b'\\u001b[94m')
-    bstring = bstring.replace(b'[magenta]',   b'\\u001b[95m')
-    bstring = bstring.replace(b'[underline]', b'\\u001b[4m')
-    return bstring.replace(b'[normal]',    b'\\u001b[0m')
+    specials = {
+            "[red]":       91,
+            "[green]":     92,
+            "[yellow]":    93,
+            "[blue]":      94,
+            "[magenta]":   95,
+            "[underline]": 4,
+            "[normal]":    0
+        }
+
+    if isinstance(string, str):
+        if no_colors:
+            for special, code in specials.items():
+                string = string.replace(special, '')
+        else:
+            for special, code in specials.items():
+                string = string.replace(special, f"\033[{code}m")
+
+    elif isinstance(string, bytes):
+        if no_colors:
+            for special, code in specials.items():
+                string = string.replace(special.encode(), b'')
+        else:
+            for special, code in specials.items():
+                string = string.replace(special.encode(),
+                        f"\\u001b[{code}m".encode())
+
+    return string
 
 def print_special(text: str) -> None:
     """
@@ -219,7 +246,7 @@ def string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict:
         "param1": "value1",
         "param2": "value2"
     }
-    
+
     WARNING: This function WILL raise IndexError if the input string
     cannot be parsed.
     """
@@ -279,17 +306,18 @@ def parse_request_cookies(cookies: str) -> dict:
         print(cookies)
         raise
 
-def load_baseline(baseline_path: str) -> dict:
+def load_baseline(baseline_path: str,
+        no_colors: Optional[bool] = False) -> dict:
     """
     This function loads the baseline.json, replaces special markings
     such as [green] to their corresponding ANSI codes, and validates it
     against baseline_schema.json
     """
-    with open("baseline_schema.json") as f:
-        baseline_schema = json_loads(f.read())
+    with open("baseline_schema.json") as baseline_schema_file:
+        baseline_schema = json_loads(baseline_schema_file.read())
 
     with open(baseline_path, "rb") as baseline_file:
-        baseline = json_loads(b_special_to_ansi(baseline_file.read()))
+        baseline = json_loads(special_to_ansi(baseline_file.read(), no_colors))
 
     validate_json(baseline, baseline_schema)
 
@@ -389,57 +417,6 @@ def analyse_headers(headers: dict, baseline: dict,
 
     return findings
 
-def baseline_demo(baseline: dict,
-        max_width: Optional[int] = get_terminal_size().columns,
-        short: Optional[bool] = False) -> None:
-    """
-    This function showcases the module and shows what would be printed after
-    analysing example headers with the selected baseline.
-    """
-    examples = [
-            {
-                "Strict-Transport-Security": "max-age=31536000;"
-                " includeSubDomains",
-                "X-Frame-Options": "DENY"
-                },
-            {
-                "Strict-Transport-Security": "max-age=potato;"
-                " includeSubDomains",
-                "X-Frame-Options": "Gloubiboulga"
-                },
-            {
-                "Strict-Transport-Security": "max-age=2006;"
-                " includeSubDomains; preload",
-                "X-Frame-Options": "ALLOW-FROM china"
-                },
-            {
-                "Strict-Transport-Security": "max-age=0;"
-                " preload",
-                "X-Frame-Options": "SAMEORIGIN"
-                },
-            {
-                "Strict-Transport-Security": "max-age=31536000;"
-                " includeSubDomains; preload",
-                "X-Frame-Options": "DENIS"
-                },
-            {
-                "Strict-Transport-Security": "includeSubDomains; preload",
-                "X-Frame-Options": "SAMEORANGINA"
-                },
-            {
-                },
-            ]
-    
-    for ex_number in range(len(examples)):
-
-        headers = examples[ex_number]
-        findings = analyse_headers(headers, baseline, short)
-
-        print_special(f"\n[blue]Example {ex_number} headers analysis:[normal]")
-        print(tabulate_findings(findings, max_width))
-
-    sys_exit(0)
-
 def parse_args() -> Any:
     """
     This function parses the commandline arguments
@@ -509,10 +486,8 @@ def parse_args() -> Any:
             " do not print the response details,"
             " do not print headers' descriptions, do not print references.")
 
-    parser.add_argument('--baseline-demo', action="store_true",
-            help="Activates baseline demo mode. No request will be sent."
-            "instead, the currently selected baseline will be applied"
-            "to a set of examples.")
+    parser.add_argument('--no-explanation-colors', action="store_true",
+            help="Suppress colors in explanations, except in reference links.")
 
     parser.add_argument('-w', '--max-width', type=int,
             help="The maximum width of the output. Defaults to the screen"
@@ -530,13 +505,10 @@ def main():
     """
     args = parse_args()
 
-    baseline = load_baseline(args.baseline_path)
+    baseline = load_baseline(args.baseline_path, args.no_explanation_colors)
 
     if not args.short:
-        print(BANNER)
-
-    if args.baseline_demo:
-        baseline_demo(baseline, args.max_width, args.short)
+        print(_BANNER)
 
     request_arguments = {
             "method"         : args.method,
