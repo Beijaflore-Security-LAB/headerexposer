@@ -1,0 +1,91 @@
+{
+	"headers": [
+		{
+			"name": "Strict-Transport-Security",
+			"description": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism which helps to protect websites against protocol downgrade attacks and cookie hijacking. It allows web servers to declare that web browsers (or other complying user agents) should only interact with it using secure HTTPS connections, and never via the insecure HTTP protocol. HSTS is an IETF standards track protocol and is specified in RFC 6797. A server implements an HSTS policy by supplying a header (Strict-Transport-Security) over an HTTPS connection (HSTS headers over HTTP are ignored).",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^(.*?;)?\\s*?max-age\\s*?=\\s*?(\"\\d+\"|\\d+)\\s*?(;.*)?$",
+			"explanation_patterns": [
+				{
+					"pattern": "^.*?max-age\\s*?=\\s*?\"?(3153[6-8][0-9]{3}|31539[0-8][0-9]{2}|315399[0-8][0-9]|3153999[0-9]|315[4-9][0-9]{4}|31[6-9][0-9]{5}|3[2-9][0-9]{6}|[4-9][0-9]{7}|100000000)\"?.*?$",
+					"present": "[green]This header tells the user's browser that this site is only to be accessed using HTTPS during the next \\1 seconds."
+				},
+				{
+					"pattern": "^.*?max-age\\s*?=\\s*?\"?0\"?.*?$",
+					"present": "[red]This header specifies a max-age of 0 seconds. It is worse than not specifying the header, because it actively tells the user's browser to remove its cached HSTS Policy information for this website! it is recommended to set the max-age property to 31536000 seconds (1 year)."
+				},
+				{
+					"pattern": "^.*?max-age\\s*?=\\s*?\"?([1-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-8][0-9]{3}|9[0-8][0-9]{2}|99[0-8][0-9]|999[0-9]|[1-8][0-9]{4}|9[0-8][0-9]{3}|99[0-8][0-9]{2}|999[0-8][0-9]|9999[0-9]|[1-8][0-9]{5}|9[0-8][0-9]{4}|99[0-8][0-9]{3}|999[0-8][0-9]{2}|9999[0-8][0-9]|99999[0-9]|[1-8][0-9]{6}|9[0-8][0-9]{5}|99[0-8][0-9]{4}|999[0-8][0-9]{3}|9999[0-8][0-9]{2}|99999[0-8][0-9]|999999[0-9]|[12][0-9]{7}|30[0-9]{6}|31[0-4][0-9]{5}|315[0-2][0-9]{4}|3153[0-4][0-9]{3}|31535[0-8][0-9]{2}|315359[0-8][0-9]|3153599[0-9])\"?\\s*?(;.*?)?$",
+					"present": "[yellow]This header tells the user's browser that this site is only to be accessed using HTTPS during the next \\1 seconds. This is shorter than the recommended value of 31536000 seconds (1 year)."
+				},
+				{
+					"pattern": "^(.*?;)?\\s*?includeSubDomains\\s*?(;.*?)?$",
+					"present": "As \"includeSubDomains\" is specified, this rule applies to all of the site's subdomains as well.[normal]",
+					"absent": "[yellow]As \"includeSubDomains\" is not specified, this rule does not apply to the site's subdomains. It is recommended to specify \"includeSubDomains\" as well.[normal]"
+				},
+				{
+					"pattern": "^(.*?;)?\\s*?preload\\s*?(;.*?)?$",
+					"present": "[green]The \"preload\" directive enables HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. The website must still have been submitted to the public HSTS preloading lists.[normal]",
+					"absent": "[yellow]The \"preload\" directive is absent, and HSTS preloading is not enabled. It is recommended to enable HSTS preloading and submit the website to the public HSTS preloading lists.[normal]"
+				}
+			],
+			"rating_patterns": [
+				{
+					"pattern": "^(.*?;)?\\s*?max-age\\s*?=\\s*?\"?[1-9]\\d*\"?\\s*?(;.*?)?$",
+					"rating": "medium"
+				},
+				{
+					"pattern": "^(.*;)?\\s*max-age\\s*=\\s*\"?(3153[6-8][0-9]{3}|31539[0-8][0-9]{2}|315399[0-8][0-9]|3153999[0-9]|315[4-9][0-9]{4}|31[6-9][0-9]{5}|3[2-9][0-9]{6}|[4-9][0-9]{7}|100000000)\"?\\s*;\\s*includeSubDomains\\s*;\\s*preload\\s*(;.*)?$",
+					"rating": "good"
+				}
+			],
+			"default_rating": "bad",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent. [normal]",
+			"invalid_explanation": "[red]This header is malformed and does not specify a max-age property or the property is invalid. [normal]",
+			"absent_or_invalid_explanation": "It is recommended to set the header's value to \"[blue]max-age=31536000; includeSubDomains; preload[normal]\". This will tell users' browsers that this site is only to be accessed using HTTPS during the next 31536000 seconds (1 year), that this also applies to all of the site's subdomains, and it will enable HSTS preloading, which forbids major modern browsers to connect to the site using HTTP, even upon the first connection. [blue]For HSTS preloading to work properly, the website must be submitted to the public HSTS preloading lists.[normal]",
+			"references": [
+				"https://tools.ietf.org/html/rfc6797",
+				"https://owasp.org/www-project-secure-headers/#http-strict-transport-security-hsts",
+				"https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html",
+				"https://hstspreload.org",
+				"https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"
+			]
+		},
+		{
+			"name": "X-Frame-Options",
+			"description": "The X-Frame-Options response header improves the protection of web applications against clickjacking. It instructs the browser whether the content can be displayed within frames. The CSP frame-ancestors directive obsoletes the X-Frame-Options header. If a resource has both policies, the CSP frame-ancestors policy will be enforced and the X-Frame-Options policy will be ignored.",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^(DENY|SAMEORIGIN|ALLOW-FROM\\s+.*)$",
+			"explanation_patterns": [
+				{
+					"pattern": "^DENY$",
+					"present": "[green]This header tells the user's browser to do no rendering within a frame. This is a good security measure but it should be replaced with the CSP frame-ancestors directive.[normal]"
+				},
+				{
+					"pattern": "^SAMEORIGIN$",
+					"present": "[green]This header tells the user's browser to only render frames which have the same origin as the page itself. This is a good security measure but it should be replaced by the CSP frame-ancestors directive.[normal]"
+				},
+				{
+					"pattern": "^ALLOW-FROM.*$",
+					"present": "[red]The use of the \"ALLOW-FROM\" directive is deprecated and no longer works in modern browsers. The CSP frame-ancestors directive should be used instead.[normal]"
+				}
+			],
+			"rating_patterns": [
+				{
+					"pattern": "^(DENY|SAMEORIGIN)$",
+					"rating": "good"
+				}
+			],
+			"default_rating": "bad",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent. [yellow]If a CSP frame-ancestors directive is used, this can be safely ignored. [red] If not, the CSP frame-ancestors directive should be used.[normal]",
+			"invalid_explanation": "[red]The header is malformed. The CSP frame-ancestors directive should be used instead.[normal]",
+			"references": [
+				"https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html"
+			]
+		}
+	]
+}

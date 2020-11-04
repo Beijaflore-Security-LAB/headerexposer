@@ -1,0 +1,146 @@
+{
+	"$schema": "http://json-schema.org/draft/2019-09/schema#",
+	"$id": "https://raw.githubusercontent.com/LivinParadoX/headerexposer/master/headerexposer/baseline_schema.json",
+	"title": "Validation and documentation schema for baseline.json",
+	"description": "This schema provides documentation for any baseline.json that may be produced, as it serves to validate that the baseline.json files have the right format",
+
+	"definitions": {
+		"rating": {
+			"type": "string",
+			"enum": ["good", "medium", "bad"]
+		},
+		"explanation_pattern": {
+			"description": "Explanation patterns determine what is shown to the user next to the rating. It works like this: if the header's value matches against the regular expression \"pattern\", then headerexposer adds the corresponding \"present\" explanation to the explanations. If not, then the optional \"absent\" explanation is added to the explanations. The regex patterns should match the entire value of the header, ex. \"^.*?some pattern.*?$\". this is because of how the python re.sub() function works. One cool thing to know is that groups matched in the explanation patterns can be used in the \"present\" string. Example, in a pattern like \"^.*?max-age=(\\d+).*?$\", the \"(\\d+)\" group can be reused in the \"present\" string, such as \"This header blah blah \\1 seconds blah blah\". In this example, if any number is matched inside the header's value, the number will be present in the \"present\" string.",
+
+			"type": "object",
+			"properties": {
+				"pattern": {"type": "string", "format": "regex"},
+				"present": {"type": "string"},
+				"absent": {"type": "string", "default": null}
+			},
+			"additionalProperties": false,
+			"required": ["pattern", "present"]
+		},
+		"rating_pattern": {
+			"description": "Rating patterns determine the header's rating. If the header's value matches against the regular expression \"pattern\", then the rating takes the value of the corresponding \"rating\".",
+
+			"type": "object",
+			"properties": {
+				"pattern": {"type": "string", "format": "regex"},
+				"rating": {"$ref": "#/definitions/rating"}
+			},
+			"additionalProperties": false,
+			"required": ["pattern", "rating"]
+		},
+		"header": {
+			"description": "The baseline headers describe what the headers should be. They are the core of headerexposer's functionality.",
+
+			"type": "object",
+			"properties": {
+				"name": {
+					"description": "The header's name is what will be retrieved in the HTTP response. It is not case-sensitive, but should nonetheless respect its specification's case.",
+
+					"type": "string"
+				},
+				"description": {
+					"description": "The (optional) description is the first thing a user will see. It should describe the header's purpose, and list the RFC or standard specications. The user can choose not to display this by providing the --short argument to headerexposer.",
+
+					"type": "string",
+					"default": null
+				},
+				"case_sensitive_patterns": {
+					"description": "This tells headerexposer whether patterns must be matched in a case-sensitive manner or not.",
+
+					"type": "boolean",
+					"default": false
+				},
+				"validation_pattern": {
+					"description": "If the header's value does not match this pattern, no further analysis will be made",
+
+					"type": "string",
+					"format": "regex"
+				},
+				"explanation_patterns": {
+					"description": "the list of explanation patterns, which will determine what is printed to the user as explanation. The order is important, as all the generated explanations will be concatenated in a long string after the header's description.",
+
+					"type": "array",
+					"items": {"$ref": "#/definitions/explanation_pattern"},
+					"uniqueItems": true,
+					"default": []
+				},
+				"rating_patterns": {
+					"description": "the list of rating patterns, which will determine the header's rating. The order is important, as the header's rating will be equal to the last matched rating pattern. It is recommended to first list the \"medium\" pattern, then the \"good\" pattern.",
+
+					"type": "array",
+					"items": {"$ref": "#/definitions/rating_pattern"},
+					"uniqueItems": true,
+					"maxItems": 2,
+					"default": []
+				},
+				"default_rating": {
+					"description": "The default rating if no rating pattern matches the header's value.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"invalid_rating": {
+					"description": "The rating if the header's value does not match the validation pattern.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"absent_rating": {
+					"description": "The rating if the header is absent in the HTTP response.",
+
+					"$ref": "#/definitions/rating",
+					"default": "bad"
+				},
+				"absent_explanation": {
+					"description": "What to tell the user if the header is absent in the HTTP response.",
+					
+					"type": "string",
+					"default": "[red]The header is absent[normal]"
+				},
+				"invalid_explanation": {
+					"description": "What to tell the user if the header's value does not match the validation pattern.",
+					
+					"type": "string",
+					"default": "[red]The header is malformed.[normal]"
+				},
+				"absent_or_invalid_explanation": {
+					"description": "This will be included in the explanations if the header's value neither matches the validation pattern or is absent. It is advised to use this explanation to explain what the ideal header's value would be in a manner similar to what the explanation patterns would explain.",
+					
+					"type": "string",
+					"default": null
+				},
+				"final_explanation": {
+					"description": "This final bit of text is added to the explanations shown to the user, regardless of the header's rating or value. Usually left null",
+
+					"type": "string",
+					"default": null
+				},
+				"references": {
+					"description": "This list should contain links to any useful documentation the user may want to read. Good links include: the corresponding OWASP secure header page, the OWASP cheat sheet helping developers to prevent the risks that this header is supposed to prevent or protect against, the RFC or standard describing the header, The header's developer.mozilla.org page (as this source is usually up-to-date and lists usually better practices than OWASP, and has nice compatibility tables detailing what is supported or not by major browsers, not just Firefox).",
+
+					"type": "array",
+					"items": {"type": "string", "format": "uri"},
+					"uniqueItems": true,
+					"default": []
+				}
+			},
+			"additionalProperties": false,
+			"required": ["name", "validation_pattern"]
+		}
+	},
+
+	"type": "object",
+	"properties": {
+		"headers": {
+			"type": "array",
+			"items": {"$ref": "#/definitions/header"},
+			"uniqueItems": true
+		}
+	},
+	"additionalProperties": false,
+	"required": ["headers"]
+}
