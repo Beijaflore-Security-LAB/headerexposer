@@ -84,17 +84,10 @@ optional arguments:
 
 >>> print(hdrexp.tabulate_findings(findings))
 Header                     Value       Rating      Explanation
--------------------------  ----------  ----------  ------------------
-Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
-                                                   absent.  It is
-                                                   recommended to set
-                                                   the header's value
-                                                   to "max-
-                                                   age=31536000;
-                                                   includeSubDomains;
-                                                   preload". This
-                                                   will tell users'
-                                                   browsers that...
+-------------------------  ----------  ----------  ---------------------------------------------------------------------------------------------------------------------------------------------------------
+Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It is recommended to set the header's value to "max-age=31536000; includeSubDomains; preload". This will tell
+                                                   users' browsers that...
+...
 ```
 
 
