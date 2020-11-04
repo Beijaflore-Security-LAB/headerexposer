@@ -107,6 +107,12 @@
 					"type": "string",
 					"default": "[red]The header is malformed.[normal]"
 				},
+				"absent_or_invalid_explanation": {
+					"description": "This will be included in the explanations if the header's value neither matches the validation pattern or is absent. It is advised to use this explanation to explain what the ideal header's value would be in a manner similar to what the explanation patterns would explain.",
+					
+					"type": "string",
+					"default": null
+				},
 				"final_explanation": {
 					"description": "This final bit of text is added to the explanations shown to the user, regardless of the header's rating or value. Usually left null",
 
@@ -122,6 +128,7 @@
 					"default": []
 				}
 			},
+			"additionalProperties": false,
 			"required": ["name", "validation_pattern"]
 		}
 	},
