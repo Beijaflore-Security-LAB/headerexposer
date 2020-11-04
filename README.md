@@ -1,11 +1,4 @@
-#HeaderExposer
-
- ┌────────────────────────────────────────────────────┐
- │░█░█░█▀▀░█▀█░█▀▄░█▀▀░█▀▄░█▀▀░█░█░█▀█░█▀█░█▀▀░█▀▀░█▀▄│
- │░█▀█░█▀▀░█▀█░█░█░█▀▀░█▀▄░█▀▀░▄▀▄░█▀▀░█░█░▀▀█░█▀▀░█▀▄│
- │░▀░▀░▀▀▀░▀░▀░▀▀░░▀▀▀░▀░▀░▀▀▀░▀░▀░▀░░░▀▀▀░▀▀▀░▀▀▀░▀░▀│
- └────────────────────────────────────────────────────┘
-
+# HeaderExposer
 Analyse the security of your website’s headers!
 
 The headerexposer module provides functions to analyse the security
@@ -100,13 +93,10 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It 
 ...
 ```
 
-
 # Authors
 
-Alexandre Janvrin. I am currently a Penetration Tester and Cybersecurity
+* Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr, ajanvrin520@beijaflore.com). I am currently a Penetration Tester and Cybersecurity
 Consultant at Beijaflore (https://www.beijaflore.com/en/)
-
-
 
 # License
 
@@ -114,5 +104,5 @@ AGPLv3+, see LICENSE for more details.
 
 # URLs
 
-PyPI url: https://pypi.org/project/headerexposer/
-GitHub url: https://github.com/LivinParadoX/headerexposer/
+* https://pypi.org/project/headerexposer/
+* https://github.com/LivinParadoX/headerexposer/
