@@ -1,4 +1,5 @@
 **analyse_header(header_value: Any, header_baseline: dict)**
+
 Analyses a single valid header according to the baseline.
 
 * **Parameters:**
@@ -13,7 +14,8 @@ Analyses a single valid header according to the baseline.
     ((string) rating, List[string] explanations) The header’s rating and the list of explanations to print.
 
 
-**analyse_headers(headers: dict, baseline: dict, short: bool = False)**<br/>
+**analyse_headers(headers: dict, baseline: dict, short: bool = False)**
+
 Analyse response headers according to baseline.
 
 This function compares headers’ values to the baseline headers to
