@@ -70,7 +70,7 @@ optional arguments:
 ```
 # Basic module usage:
 
-```python
+```
 >>> import headerexposer as hdrexp
 >>> import requests
 
