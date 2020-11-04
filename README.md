@@ -1,10 +1,4 @@
-#HeaderExposer
-
- ┌────────────────────────────────────────────────────┐
- │░█░█░█▀▀░█▀█░█▀▄░█▀▀░█▀▄░█▀▀░█░█░█▀█░█▀█░█▀▀░█▀▀░█▀▄│
- │░█▀█░█▀▀░█▀█░█░█░█▀▀░█▀▄░█▀▀░▄▀▄░█▀▀░█░█░▀▀█░█▀▀░█▀▄│
- │░▀░▀░▀▀▀░▀░▀░▀▀░░▀▀▀░▀░▀░▀▀▀░▀░▀░▀░░░▀▀▀░▀▀▀░▀▀▀░▀░▀│
- └────────────────────────────────────────────────────┘
+# HeaderExposer
 
 Analyse the security of your website’s headers!
 
@@ -114,5 +108,5 @@ AGPLv3+, see LICENSE for more details.
 
 # URLs
 
-PyPI url: https://pypi.org/project/headerexposer/
-GitHub url: https://github.com/LivinParadoX/headerexposer/
+    * https://pypi.org/project/headerexposer/
+    * https://github.com/LivinParadoX/headerexposer/
