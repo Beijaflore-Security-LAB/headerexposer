@@ -78,9 +78,7 @@ optional arguments:
 
 >>> response = requests.get("https://google.com")
 
->>> findings = hdrexp.analyse_headers(response.headers,
-...                                   baseline,
-...                                   short=True)
+>>> findings = hdrexp.analyse_headers(response.headers, baseline, short=True)
 
 >>> print(hdrexp.tabulate_findings(findings))
 Header                     Value       Rating      Explanation
