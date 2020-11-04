@@ -141,7 +141,8 @@ ANSI codes. The following tags are currently supported:
     * **text** – The text to print.
 
 
-**special_to_ansi(string: str, no_colors: Optional[bool] = False)**<br/>
+**special_to_ansi(string: str, no_colors: Optional[bool] = False)**
+
 Replace tags to their corresponding ANSI codes in strings.
 
 The following tags are currently supported:
