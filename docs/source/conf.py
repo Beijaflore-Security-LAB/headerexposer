@@ -22,7 +22,7 @@ copyright = '2020, Alexandre Janvrin'
 author = 'Alexandre Janvrin'
 
 # The full version, including alpha/beta/rc tags
-release = '2020.10.dev3'
+release = '2020.11.dev1'
 
 
 # -- General configuration ---------------------------------------------------

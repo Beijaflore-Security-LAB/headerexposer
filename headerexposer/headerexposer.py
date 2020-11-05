@@ -51,7 +51,7 @@ __all__ = [
     "analyse_header",
     "analyse_headers",
 ]
-__version__ = "2020.10.dev3"
+__version__ = "2020.11.dev1"
 __author__ = "Alexandre Janvrin"
 __description__ = "Analyse the security of your website's headers!"
 __license__ = "AGPLv3+"
