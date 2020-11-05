@@ -1,0 +1,379 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "HEADEREXPOSER" "1" "Nov 05, 2020" "" "HeaderExposer"
+.SH NAME
+headerexposer \- HeaderExposer 2020.10.dev3
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.sp
+Analyse the security of your website\(aqs headers.
+.sp
+The headerexposer module provides functions to analyse the security
+of a website\(aqs headers.
+.sp
+It can be loaded as a module, or directly ran from the commandline.
+.sp
+For commandline usage, see the output of:
+python3 \-m headerexposer \-\-help
+.sp
+Basic module usage:
+.sp
+.nf
+.ft C
+>>> import headerexposer as he
+>>> import requests
+.ft P
+.fi
+.sp
+.nf
+.ft C
+>>> baseline = he.load_baseline("baseline.json")
+.ft P
+.fi
+.sp
+.nf
+.ft C
+>>> resp = requests.get("https://google.com")
+.ft P
+.fi
+.sp
+.nf
+.ft C
+>>> findings = he.analyse_headers(resp.headers, baseline, short=True)
+.ft P
+.fi
+.sp
+.nf
+.ft C
+>>> print(he.tabulate_findings(findings))
+Header                     Value       Rating      Explanation
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  \-\-\-\-\-\-\-\-\-\-  \-\-\-\-\-\-\-\-\-\-  \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+Strict\-Transport\-Security  Absent      [ＢＡＤ]    The header is
+                                                   absent.  It is
+                                                   recommended to set
+                                                   the header\(aqs value
+                                                   to "max\-
+                                                   age=31536000;
+                                                   includeSubDomains;
+                                                   preload". This
+                                                   will tell users\(aq
+                                                   browsers that...
+\&...
+.ft P
+.fi
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.analyse_header(header_value: Any, header_baseline: dict) -> Tuple[str, List[str]]
+Analyses a single valid header according to the baseline.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBheader_value\fP \-\- (string) The header\(aqs value
+.IP \(bu 2
+\fBheader_baseline\fP \-\- The header\(aqs baseline as loaded by load_baseline()
+.UNINDENT
+.TP
+.B Returns
+((str) rating, List[str] explanations) The header\(aqs rating and
+the list of explanations to print.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False) -> list
+Analyse response headers according to baseline.
+.sp
+This function compares headers\(aq values to the baseline headers to
+produce a security analysis. Basically, it parses the baseline for
+regex patterns to identify in the headers\(aq values, and returns the
+ratings and explanations associated in the baseline.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBheaders\fP \-\- The headers to analyse.
+.IP \(bu 2
+\fBbaseline\fP \-\- The baseline to compare the headers\(aq values against. It
+should be loaded from load_baseline().
+.IP \(bu 2
+\fBshort\fP \-\- If True, the headers\(aq descriptions and references as
+contained in the baseline will not be added to the
+explanations.
+.UNINDENT
+.TP
+.B Returns
+.INDENT 7.0
+.TP
+.B {
+"header": (string) header_name,
+"value": (string) header_value,
+"rating": (string) rating,
+"explanations": (List[string]) explanations,
+"references": (List[string]) references
+.UNINDENT
+.sp
+}
+
+.TP
+.B Return type
+The list of findings, each finding being a dict like this
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False) -> bytes
+Replace tags to their corresponding ANSI codes in bytestrings.
+.sp
+The following tags are currently supported:
+[red], [green], [yellow], [blue], [magenta], [underline], [normal]
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbstring\fP \-\- The bytestring in which to replace the tags.
+.IP \(bu 2
+\fBno_colors\fP \-\- If this is True, all tags will be removed instead of being
+replaced.
+.UNINDENT
+.TP
+.B Returns
+The string with tags replaced or stripped.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False) -> dict
+Load and validate baseline.json.
+.sp
+This function loads the baseline.json, replaces special markings
+such as [green] to their corresponding ANSI codes, and validates it
+against baseline_schema.json.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBbaseline_path\fP \-\- the absolute or relative path to the baseline file.
+.IP \(bu 2
+\fBno_colors\fP \-\- If True, the special tags such as [red] will be stripped from
+the baseline file, which essentially means that explanations
+will not be color\-coded (but references and ratings will
+still be, as they are they are colored by headerexposer and
+not in the baseline).
+.UNINDENT
+.TP
+.B Returns
+the baseline dict loaded from baseline.json.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.parse_request_cookies(cookies: Optional[str]) -> Optional[dict]
+Parse a cookies string into a dict.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBcookies\fP \-\- A string representing the cookies to parse, such as
+"cookie1=value1; cookie2=value2", or None.
+.TP
+.B Returns
+cookie_value pairs. Returns None if
+cookies is None.
+.TP
+.B Return type
+A dict of cookie_name
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.parse_request_headers(headers: Optional[str]) -> dict
+Parse a headers string into a dict.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBheaders\fP \-\- A string representing the headers to parse, such as
+"header1: value1nheader2: value2", or None.
+.TP
+.B Returns
+header_value pairs. Returns an empty
+dict if headers is None.
+.TP
+.B Return type
+A dict of header_name
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.parse_request_parameters(params: Optional[str]) -> Optional[dict]
+Parse a parameters string into a dict.
+.INDENT 7.0
+.TP
+.B Parameters
+\fBparams\fP \-\- A string representing the parameters to parse, such as
+"param1=value1&param2=value2", or None.
+.TP
+.B Returns
+parameter_value pairs. Returns None
+if params is None.
+.TP
+.B Return type
+A dict of parameter_name
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.print_special(text: str) -> None
+Print a string after replacing its special tags.
+.sp
+The tags such as [green] will be replaced with their corresponding
+ANSI codes. The following tags are currently supported:
+[red], [green], [yellow], [blue], [magenta], [underline], [normal]
+.INDENT 7.0
+.TP
+.B Parameters
+\fBtext\fP \-\- The text to print.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False) -> str
+Replace tags to their corresponding ANSI codes in strings.
+.sp
+The following tags are currently supported:
+[red], [green], [yellow], [blue], [magenta], [underline], [normal]
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstring\fP \-\- The string in which to replace the tags.
+.IP \(bu 2
+\fBno_colors\fP \-\- If this is True, all tags will be removed instead of being
+replaced.
+.UNINDENT
+.TP
+.B Returns
+The string with tags replaced or stripped.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict
+Parse a string into a dict by splitting around delimiters.
+.sp
+This function parses a string into a dict by splitting it around
+delimiters, and eliminating superfluous white spaces.
+.sp
+For example, "param1: value1; param2: value2" with \(aq:\(aq as
+delimiter_1 and \(aq;\(aq as delimiter_2 will be parsed into
+{
+.INDENT 7.0
+.INDENT 3.5
+"param1": "value1",
+"param2": "value2"
+.UNINDENT
+.UNINDENT
+.sp
+}
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBstring\fP \-\- The string to parse.
+.IP \(bu 2
+\fBdelimiter_1\fP \-\- The delimiter which separates the key: value pairs.
+.IP \(bu 2
+\fBdelimiter_2\fP \-\- The delimiter which separates the keys from the values.
+.UNINDENT
+.TP
+.B Returns
+value pairs.
+.TP
+.B Return type
+The dict of key
+.TP
+.B Raises
+\fBIndexError if the input string cannot be parsed.\fP \-\- 
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.tabulate_dict(dictionary: dict, max_width: int = None) -> str
+Format a dict as a two\-columns table.
+.sp
+This function formats a dict as a two\-columns table, where the
+first column is the dict keys and the second column is the values.
+It wraps the value column to not produce a table wider than
+max_width.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBdictionary\fP \-\- The dict to turn into a nice table.
+.IP \(bu 2
+\fBmax_width\fP \-\- If specified, the function will try to wrap the values in
+order to not produce a table wider than max_width characters.
+.UNINDENT
+.TP
+.B Returns
+The nice table ready for printing.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B headerexposer.headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None) -> str
+Format the findings in a nice table for printing.
+.INDENT 7.0
+.TP
+.B Parameters
+.INDENT 7.0
+.IP \(bu 2
+\fBfindings\fP \-\- The list of finding items to format. This should come from
+the analyse_headers() function.
+.IP \(bu 2
+\fBmax_width\fP \-\- If specified, the function will try to produce a table at
+most max_width characters wide.
+.UNINDENT
+.TP
+.B Returns
+The string representing the nice findings table. Usually ready
+for printing.
+.UNINDENT
+.UNINDENT
+.SH AUTHOR
+Alexandre Janvrin
+.SH COPYRIGHT
+2020, Alexandre Janvrin
+.\" Generated by docutils manpage writer.
+.

@@ -1,0 +1,838 @@
+<document source="/home/aja/.local/gits/headerexposer/docs/source/index.rst">
+    <section ids="module-headerexposer.headerexposer headerexposer" names="headerexposer">
+        <title>
+            HeaderExposer
+        <index entries="['pair',\ 'module;\ headerexposer.headerexposer',\ 'module-headerexposer.headerexposer',\ '',\ None]">
+        <paragraph>
+            Analyse the security of your website's headers.
+        <paragraph>
+            The headerexposer module provides functions to analyse the security
+            of a website's headers.
+        <paragraph>
+            It can be loaded as a module, or directly ran from the commandline.
+        <paragraph>
+            For commandline usage, see the output of:
+            python3 -m headerexposer --help
+        <paragraph>
+            Basic module usage:
+        <doctest_block classes="doctest" xml:space="preserve">
+            >>> import headerexposer as he
+            >>> import requests
+        <doctest_block classes="doctest" xml:space="preserve">
+            >>> baseline = he.load_baseline("baseline.json")
+        <doctest_block classes="doctest" xml:space="preserve">
+            >>> resp = requests.get("https://google.com")
+        <doctest_block classes="doctest" xml:space="preserve">
+            >>> findings = he.analyse_headers(resp.headers, baseline, short=True)
+        <doctest_block classes="doctest" xml:space="preserve">
+            >>> print(he.tabulate_findings(findings))
+            Header                     Value       Rating      Explanation
+            -------------------------  ----------  ----------  ------------------
+            Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
+                                                               absent.  It is
+                                                               recommended to set
+                                                               the header's value
+                                                               to "max-
+                                                               age=31536000;
+                                                               includeSubDomains;
+                                                               preload". This
+                                                               will tell users'
+                                                               browsers that...
+            ...
+        <index entries="['single',\ 'analyse_header()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.analyse_header',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="analyse_header" ids="headerexposer.headerexposer.analyse_header" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    analyse_header
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            header_value
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Any
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            header_baseline
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            dict
+                <desc_returns xml:space="preserve">
+                    Tuple
+                    <desc_sig_punctuation classes="p p">
+                        [
+                    str
+                    <desc_sig_punctuation classes="p p">
+                        , 
+                    List
+                    <desc_sig_punctuation classes="p p">
+                        [
+                    str
+                    <desc_sig_punctuation classes="p p">
+                        ]
+                    <desc_sig_punctuation classes="p p">
+                        ]
+            <desc_content>
+                <paragraph>
+                    Analyses a single valid header according to the baseline.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            header_value
+                                         -- 
+                                        (string) The header's value
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            header_baseline
+                                         -- 
+                                        The header's baseline as loaded by load_baseline()
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                ((str) rating, List[str] explanations) The header's rating and
+                                the list of explanations to print.
+        <index entries="['single',\ 'analyse_headers()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.analyse_headers',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="analyse_headers" ids="headerexposer.headerexposer.analyse_headers" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    analyse_headers
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            headers
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            dict
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            baseline
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            dict
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            short
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            bool
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            False
+                <desc_returns xml:space="preserve">
+                    list
+            <desc_content>
+                <paragraph>
+                    Analyse response headers according to baseline.
+                <paragraph>
+                    This function compares headers' values to the baseline headers to
+                    produce a security analysis. Basically, it parses the baseline for
+                    regex patterns to identify in the headers' values, and returns the
+                    ratings and explanations associated in the baseline.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            headers
+                                         -- 
+                                        The headers to analyse.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            baseline
+                                         -- 
+                                        The baseline to compare the headers' values against. It
+                                        should be loaded from load_baseline().
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            short
+                                         -- 
+                                        If True, the headers' descriptions and references as
+                                        contained in the baseline will not be added to the
+                                        explanations.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                <definition_list>
+                                    <definition_list_item>
+                                        <term>
+                                            {
+                                        <definition>
+                                            <paragraph>
+                                                "header": (string) header_name,
+                                                "value": (string) header_value,
+                                                "rating": (string) rating,
+                                                "explanations": (List[string]) explanations,
+                                                "references": (List[string]) references
+                                <paragraph>
+                                    }
+                    <field>
+                        <field_name>
+                            Return type
+                        <field_body>
+                            <paragraph>
+                                The list of findings
+                                , 
+                                each finding being a dict like this
+        <index entries="['single',\ 'b_special_to_ansi()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.b_special_to_ansi',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="b_special_to_ansi" ids="headerexposer.headerexposer.b_special_to_ansi" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    b_special_to_ansi
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            bstring
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            bytes
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            no_colors
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            bool
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            False
+                <desc_returns xml:space="preserve">
+                    bytes
+            <desc_content>
+                <paragraph>
+                    Replace tags to their corresponding ANSI codes in bytestrings.
+                <paragraph>
+                    The following tags are currently supported:
+                    [red], [green], [yellow], [blue], [magenta], [underline], [normal]
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            bstring
+                                         -- 
+                                        The bytestring in which to replace the tags.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            no_colors
+                                         -- 
+                                        If this is True, all tags will be removed instead of being
+                                        replaced.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                The string with tags replaced or stripped.
+        <index entries="['single',\ 'load_baseline()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.load_baseline',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="load_baseline" ids="headerexposer.headerexposer.load_baseline" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    load_baseline
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            baseline_path
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            no_colors
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            bool
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            False
+                <desc_returns xml:space="preserve">
+                    dict
+            <desc_content>
+                <paragraph>
+                    Load and validate baseline.json.
+                <paragraph>
+                    This function loads the baseline.json, replaces special markings
+                    such as [green] to their corresponding ANSI codes, and validates it
+                    against baseline_schema.json.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            baseline_path
+                                         -- 
+                                        the absolute or relative path to the baseline file.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            no_colors
+                                         -- 
+                                        If True, the special tags such as [red] will be stripped from
+                                        the baseline file, which essentially means that explanations
+                                        will not be color-coded (but references and ratings will
+                                        still be, as they are they are colored by headerexposer and
+                                        not in the baseline).
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                the baseline dict loaded from baseline.json.
+        <index entries="['single',\ 'parse_request_cookies()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.parse_request_cookies',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="parse_request_cookies" ids="headerexposer.headerexposer.parse_request_cookies" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    parse_request_cookies
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            cookies
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            str
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                <desc_returns xml:space="preserve">
+                    Optional
+                    <desc_sig_punctuation classes="p p">
+                        [
+                    dict
+                    <desc_sig_punctuation classes="p p">
+                        ]
+            <desc_content>
+                <paragraph>
+                    Parse a cookies string into a dict.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <paragraph>
+                                <literal_strong refspecific="True">
+                                    cookies
+                                 -- 
+                                A string representing the cookies to parse, such as
+                                "cookie1=value1; cookie2=value2", or None.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                cookie_value pairs. Returns None if
+                                cookies is None.
+                    <field>
+                        <field_name>
+                            Return type
+                        <field_body>
+                            <paragraph>
+                                A dict of cookie_name
+        <index entries="['single',\ 'parse_request_headers()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.parse_request_headers',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="parse_request_headers" ids="headerexposer.headerexposer.parse_request_headers" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    parse_request_headers
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            headers
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            str
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                <desc_returns xml:space="preserve">
+                    dict
+            <desc_content>
+                <paragraph>
+                    Parse a headers string into a dict.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <paragraph>
+                                <literal_strong refspecific="True">
+                                    headers
+                                 -- 
+                                A string representing the headers to parse, such as
+                                "header1: value1nheader2: value2", or None.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                header_value pairs. Returns an empty
+                                dict if headers is None.
+                    <field>
+                        <field_name>
+                            Return type
+                        <field_body>
+                            <paragraph>
+                                A dict of header_name
+        <index entries="['single',\ 'parse_request_parameters()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.parse_request_parameters',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="parse_request_parameters" ids="headerexposer.headerexposer.parse_request_parameters" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    parse_request_parameters
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            params
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            str
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                <desc_returns xml:space="preserve">
+                    Optional
+                    <desc_sig_punctuation classes="p p">
+                        [
+                    dict
+                    <desc_sig_punctuation classes="p p">
+                        ]
+            <desc_content>
+                <paragraph>
+                    Parse a parameters string into a dict.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <paragraph>
+                                <literal_strong refspecific="True">
+                                    params
+                                 -- 
+                                A string representing the parameters to parse, such as
+                                "param1=value1&param2=value2", or None.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                parameter_value pairs. Returns None
+                                if params is None.
+                    <field>
+                        <field_name>
+                            Return type
+                        <field_body>
+                            <paragraph>
+                                A dict of parameter_name
+        <index entries="['single',\ 'print_special()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.print_special',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="print_special" ids="headerexposer.headerexposer.print_special" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    print_special
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            text
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                <desc_returns xml:space="preserve">
+                    None
+            <desc_content>
+                <paragraph>
+                    Print a string after replacing its special tags.
+                <paragraph>
+                    The tags such as [green] will be replaced with their corresponding
+                    ANSI codes. The following tags are currently supported:
+                    [red], [green], [yellow], [blue], [magenta], [underline], [normal]
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <paragraph>
+                                <literal_strong refspecific="True">
+                                    text
+                                 -- 
+                                The text to print.
+        <index entries="['single',\ 'special_to_ansi()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.special_to_ansi',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="special_to_ansi" ids="headerexposer.headerexposer.special_to_ansi" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    special_to_ansi
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            string
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            no_colors
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            bool
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            False
+                <desc_returns xml:space="preserve">
+                    str
+            <desc_content>
+                <paragraph>
+                    Replace tags to their corresponding ANSI codes in strings.
+                <paragraph>
+                    The following tags are currently supported:
+                    [red], [green], [yellow], [blue], [magenta], [underline], [normal]
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            string
+                                         -- 
+                                        The string in which to replace the tags.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            no_colors
+                                         -- 
+                                        If this is True, all tags will be removed instead of being
+                                        replaced.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                The string with tags replaced or stripped.
+        <index entries="['single',\ 'string_to_dict()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.string_to_dict',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="string_to_dict" ids="headerexposer.headerexposer.string_to_dict" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    string_to_dict
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            string
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            delimiter_1
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            delimiter_2
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            str
+                <desc_returns xml:space="preserve">
+                    dict
+            <desc_content>
+                <paragraph>
+                    Parse a string into a dict by splitting around delimiters.
+                <paragraph>
+                    This function parses a string into a dict by splitting it around
+                    delimiters, and eliminating superfluous white spaces.
+                <paragraph>
+                    For example, "param1: value1; param2: value2" with ':' as
+                    delimiter_1 and ';' as delimiter_2 will be parsed into
+                    {
+                <block_quote>
+                    <paragraph>
+                        "param1": "value1",
+                        "param2": "value2"
+                <paragraph>
+                    }
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            string
+                                         -- 
+                                        The string to parse.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            delimiter_1
+                                         -- 
+                                        The delimiter which separates the key: value pairs.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            delimiter_2
+                                         -- 
+                                        The delimiter which separates the keys from the values.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                value pairs.
+                    <field>
+                        <field_name>
+                            Return type
+                        <field_body>
+                            <paragraph>
+                                The dict of key
+                    <field>
+                        <field_name>
+                            Raises
+                        <field_body>
+                            <paragraph>
+                                <literal_strong>
+                                    IndexError if the input string cannot be parsed.
+                                 -- 
+        <index entries="['single',\ 'tabulate_dict()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.tabulate_dict',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="tabulate_dict" ids="headerexposer.headerexposer.tabulate_dict" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    tabulate_dict
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            dictionary
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            dict
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            max_width
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            int
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            None
+                <desc_returns xml:space="preserve">
+                    str
+            <desc_content>
+                <paragraph>
+                    Format a dict as a two-columns table.
+                <paragraph>
+                    This function formats a dict as a two-columns table, where the
+                    first column is the dict keys and the second column is the values.
+                    It wraps the value column to not produce a table wider than
+                    max_width.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            dictionary
+                                         -- 
+                                        The dict to turn into a nice table.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            max_width
+                                         -- 
+                                        If specified, the function will try to wrap the values in
+                                        order to not produce a table wider than max_width characters.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                The nice table ready for printing.
+        <index entries="['single',\ 'tabulate_findings()\ (in\ module\ headerexposer.headerexposer)',\ 'headerexposer.headerexposer.tabulate_findings',\ '',\ None]">
+        <desc classes="py" desctype="function" domain="py" noindex="False" objtype="function">
+            <desc_signature class="" fullname="tabulate_findings" ids="headerexposer.headerexposer.tabulate_findings" module="headerexposer.headerexposer">
+                <desc_addname xml:space="preserve">
+                    headerexposer.headerexposer.
+                <desc_name xml:space="preserve">
+                    tabulate_findings
+                <desc_parameterlist xml:space="preserve">
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            findings
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            list
+                    <desc_parameter xml:space="preserve">
+                        <desc_sig_name classes="n n">
+                            max_width
+                        <desc_sig_punctuation classes="p p">
+                            :
+                         
+                        <desc_sig_name classes="n n">
+                            Optional
+                            <desc_sig_punctuation classes="p p">
+                                [
+                            int
+                            <desc_sig_punctuation classes="p p">
+                                ]
+                         
+                        <desc_sig_operator classes="o o">
+                            =
+                         
+                        <inline classes="default_value" support_smartquotes="False">
+                            None
+                <desc_returns xml:space="preserve">
+                    str
+            <desc_content>
+                <paragraph>
+                    Format the findings in a nice table for printing.
+                <field_list>
+                    <field>
+                        <field_name>
+                            Parameters
+                        <field_body>
+                            <bullet_list>
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            findings
+                                         -- 
+                                        The list of finding items to format. This should come from
+                                        the analyse_headers() function.
+                                <list_item>
+                                    <paragraph>
+                                        <literal_strong refspecific="True">
+                                            max_width
+                                         -- 
+                                        If specified, the function will try to produce a table at
+                                        most max_width characters wide.
+                    <field>
+                        <field_name>
+                            Returns
+                        <field_body>
+                            <paragraph>
+                                The string representing the nice findings table. Usually ready
+                                for printing.
