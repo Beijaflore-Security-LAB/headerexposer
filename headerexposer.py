@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Analyse the security of your website's headers!
+"""Analyse the security of your website's headers.
 
 The headerexposer module provides functions to analyse the security
 of a website's headers.
@@ -12,18 +12,16 @@ python3 -m headerexposer --help
 
 Basic module usage:
 
->>> import headerexposer as hdrexp
+>>> import headerexposer as he
 >>> import requests
 
->>> baseline = hdrexp.load_baseline("baseline.json")
+>>> baseline = he.load_baseline("baseline.json")
 
->>> response = requests.get("https://google.com")
+>>> resp = requests.get("https://google.com")
 
->>> findings = hdrexp.analyse_headers(response.headers,
-...                                   baseline,
-...                                   short=True)
+>>> findings = he.analyse_headers(resp.headers, baseline, short=True)
 
->>> print(hdrexp.tabulate_findings(findings))
+>>> print(he.tabulate_findings(findings))
 Header                     Value       Rating      Explanation
 -------------------------  ----------  ----------  ------------------
 Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
@@ -36,9 +34,7 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
                                                    preload". This
                                                    will tell users'
                                                    browsers that...
-
-:copyright: (c) 2020 Alexandre Janvrin.
-:license: AGPLv3+, see LICENSE for more details.
+...
 """
 
 __all__ = [
@@ -56,29 +52,24 @@ __all__ = [
     "analyse_headers",
 ]
 __version__ = "2020.10.dev3"
-__author__ = "Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr)"
-__author_email__ = "alexandre.janvrin@reseau.eseo.fr"
-__cake__ = "✨ 🍰 ✨"
-__copyright__ = "Copyright 2020 Alexandre Janvrin"
-__description__ = "Analyse the security of HTTP headers."
+__author__ = "Alexandre Janvrin"
+__description__ = "Analyse the security of your website's headers!"
 __license__ = "AGPLv3+"
 __title__ = "headerexposer"
 __url__ = "https://github.com/LivinParadoX/headerexposer"
 
-from argparse import ArgumentParser
-from functools import partial
-from json import loads as json_loads
-from re import IGNORECASE
-from re import compile as regex_compile
-from shutil import get_terminal_size
-from textwrap import wrap
-from typing import Any, Optional, Tuple, Union
+import argparse
+import functools
+import json
+import re
+import shutil
+import textwrap
+from typing import Any, List, Optional, Tuple, Union
 
-from jsonschema import validate as validate_json  # type: ignore
-from requests import request
-from tabulate import tabulate
-from urllib3 import disable_warnings as urllib3_dis_warns  # type: ignore
-from urllib3.exceptions import InsecureRequestWarning  # type: ignore
+import jsonschema  # type: ignore
+import requests
+import tabulate
+import urllib3  # type: ignore
 
 _BANNER = "".join(
     [
@@ -109,9 +100,14 @@ def special_to_ansi(string: str, no_colors: Optional[bool] = False) -> str:
     The following tags are currently supported:
     [red], [green], [yellow], [blue], [magenta], [underline], [normal]
 
-    :param string: The string in which to replace the tags.
-    :param no_colors: If this is True, all tags will be removed.
-    :return: The string with tags replaced or stripped.
+    Args:
+        string:
+          The string in which to replace the tags.
+        no_colors:
+          If this is True, all tags will be removed.
+
+    Returns:
+        The string with tags replaced or stripped.
     """
     if no_colors:
         for special, code in _SPECIALS.items():
@@ -132,9 +128,14 @@ def b_special_to_ansi(
     The following tags are currently supported:
     [red], [green], [yellow], [blue], [magenta], [underline], [normal]
 
-    :param bstring: The bytestring in which to replace the tags.
-    :param no_colors: If this is True, all tags will be removed.
-    :return: The string with tags replaced or stripped.
+    Args:
+        bstring:
+          The bytestring in which to replace the tags.
+        no_colors:
+          If this is True, all tags will be removed.
+
+    Returns:
+        The string with tags replaced or stripped.
     """
     if no_colors:
         for special, code in _SPECIALS.items():
@@ -156,7 +157,9 @@ def print_special(text: str) -> None:
     ANSI codes. The following tags are currently supported:
     [red], [green], [yellow], [blue], [magenta], [underline], [normal]
 
-    :param text: The text to print.
+    Args:
+        text:
+          The text to print.
     """
     print(special_to_ansi(text))
 
@@ -169,30 +172,35 @@ def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
     It wraps the value column to not produce a table wider than
     max_width.
 
-    :param dictionary: The dict to turn into a nice table.
-    :param max_width: If specified, the function will try to wrap the
-    values in order to not produce a table wider than max_width
-    characters.
-    :return: The nice table ready for printing.
+    Args:
+        dictionary:
+          The dict to turn into a nice table.
+        max_width:
+          If specified, the function will try to wrap the values in
+          order to not produce a table wider than max_width characters.
+
+    Returns:
+        The nice table ready for printing.
     """
     if max_width is None:
-        max_width = get_terminal_size().columns
+        max_width = shutil.get_terminal_size().columns
 
     max_dict_key_len = len(max(dictionary.keys(), key=len))
 
-    # The maximum value width is equal to the maximum dict key width minus the
-    # two spaces between columns minus the '\' that is added to each split
-    # line to make it evident to the user that the line has been split
+    # The maximum value width is equal to the maximum dict key width
+    # minus the two spaces between columns minus the '\' that is added
+    # to each split line to make it evident to the user that the line
+    # has been split
     max_v_width = max_width - max_dict_key_len - 3
 
-    # To understand this bit of magic one needs to understand the wrap()
-    # function and the "".join() method.
+    # To understand this bit of magic one needs to understand the
+    # textwrap.wrap() function and the "".join() method.
     table = [
-        [str(k), "\\\n".join(wrap(str(v), width=max_v_width))]
+        [str(k), "\\\n".join(textwrap.wrap(str(v), width=max_v_width))]
         for k, v in dictionary.items()
     ]
 
-    return tabulate(table)
+    return tabulate.tabulate(table)
 
 
 def _find_optimal_column_width(
@@ -221,7 +229,7 @@ def _find_optimal_column_width(
      resolve to breaking the links, as there are no other choices.
     """
     if max_width is None:
-        max_width = get_terminal_size().columns
+        max_width = shutil.get_terminal_size().columns
 
     max_header_name_len = 0
     max_header_value_len = 0
@@ -275,12 +283,17 @@ def _find_optimal_column_width(
 def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
     """Format the findings in a nice table for printing.
 
-    :param findings: The list of finding items to format. This should
-    come from the analyse_headers() function.
-    :param max_width: If specified, the function will try to produce a
-    table at most max_width characters wide.
-    :return: The string representing the nice findings table. Usually
-    ready for printing.
+    Args:
+        findings:
+          The list of finding items to format. This should come from
+          the analyse_headers() function.
+        max_width:
+          If specified, the function will try to produce a table at
+          most max_width characters wide.
+
+    Returns:
+        The string representing the nice findings table. Usually ready
+        for printing.
     """
     findings_table = []
 
@@ -293,7 +306,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         if finding["value"] is None:
             value = "Absent"
         else:
-            value = "\\\n".join(wrap(finding["value"], width=v_width))
+            value = "\\\n".join(textwrap.wrap(finding["value"], width=v_width))
 
         rating = finding["rating"]
 
@@ -305,7 +318,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         # column width. Once this is done we again join the lines
         paragraphs = " ".join(finding["explanations"]).splitlines()
 
-        lines = ["\n".join(wrap(p, e_width)) for p in paragraphs]
+        lines = ["\n".join(textwrap.wrap(p, e_width)) for p in paragraphs]
 
         explanation = "\n".join(lines)
 
@@ -319,7 +332,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         references = finding["references"]
         if references != []:
 
-            lines = ["\n".join(wrap(r, e_width)) for r in references]
+            lines = ["\n".join(textwrap.wrap(r, e_width)) for r in references]
 
             ref_lines = "\n".join(lines).splitlines()
 
@@ -334,7 +347,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         findings_table += [[finding["header"], value, rating, explanation]]
 
     table_headers = ["Header", "Value", "Rating", "Explanation"]
-    return tabulate(findings_table, headers=table_headers)
+    return tabulate.tabulate(findings_table, headers=table_headers)
 
 
 def string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict:
@@ -350,15 +363,19 @@ def string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict:
         "param2": "value2"
     }
 
-    WARNING: This function WILL raise IndexError if the input string
-    cannot be parsed.
+    Args:
+        string:
+          The string to parse.
+        delimiter_1:
+          The delimiter which separates the key: value pairs.
+        delimiter_2:
+          The delimiter which separates the keys from the values.
 
-    :param string: The string to parse.
-    :param delimiter_1: The delimiter which separates the key: value
-    pairs.
-    :param delimiter_2: The delimiter which separates the keys from
-    the values.
-    :return: The dict of key: value pairs.
+    Returns:
+        The dict of key: value pairs.
+
+    Raises:
+        IndexError if the input string cannot be parsed.
     """
     result_dict = {}
     for couple in string.split(delimiter_2):
@@ -374,10 +391,14 @@ def string_to_dict(string: str, delimiter_1: str, delimiter_2: str) -> dict:
 def parse_request_parameters(params: Union[str, None]) -> Union[dict, None]:
     """Parse a parameters string into a dict.
 
-    :param params: A string representing the parameters to parse, such
-    as "param1=value1&param2=value2", or None.
-    :return: A dict of parameter_name: parameter_value pairs. Returns
-    None if params is None.
+    Args:
+        params:
+          A string representing the parameters to parse, such as
+          "param1=value1&param2=value2", or None.
+
+    Returns:
+        A dict of parameter_name: parameter_value pairs. Returns None
+        if params is None.
     """
     if params is None:
         return None
@@ -397,10 +418,14 @@ def parse_request_parameters(params: Union[str, None]) -> Union[dict, None]:
 def parse_request_headers(headers: Union[str, None]) -> dict:
     r"""Parse a headers string into a dict.
 
-    :param cookies: A string representing the headers to parse, such
-    as "header1: value1\nheader2: value2", or None.
-    :return: A dict of header_name: header_value pairs. Returns an
-    empty dict if headers is None.
+    Args:
+        headers:
+          A string representing the headers to parse, such as
+          "header1: value1\nheader2: value2", or None.
+
+    Returns:
+        A dict of header_name: header_value pairs. Returns an empty
+        dict if headers is None.
     """
     if headers is None:
         return {}
@@ -421,10 +446,14 @@ def parse_request_headers(headers: Union[str, None]) -> dict:
 def parse_request_cookies(cookies: Union[str, None]) -> Union[dict, None]:
     """Parse a cookies string into a dict.
 
-    :param cookies: A string representing the cookies to parse, such
-    as "cookie1=value1; cookie2=value2", or None.
-    :return: A dict of cookie_name: cookie_value pairs. Returns None
-    if cookies is None.
+    Args:
+        cookies:
+          A string representing the cookies to parse, such as
+          "cookie1=value1; cookie2=value2", or None.
+
+    Returns:
+        A dict of cookie_name: cookie_value pairs. Returns None if
+        cookies is None.
     """
     if cookies is None:
         return None
@@ -451,45 +480,53 @@ def load_baseline(
     such as [green] to their corresponding ANSI codes, and validates it
     against baseline_schema.json.
 
-    :param baseline_path: the absolute or relative path to the baseline
-    file.
-    :param no_colors: If True, the special tags such as [red] will be
-    stripped from the baseline file, which essentially means that
-    explanations will not be color-coded (but references and ratings
-    will still be, as they are they are colored by headerexposer and
-    not in the baseline).
-    :return: the baseline dict loaded from baseline.json.
+    Args:
+        baseline_path:
+          the absolute or relative path to the baseline file.
+        no_colors:
+          If True, the special tags such as [red] will be stripped from
+          the baseline file, which essentially means that explanations
+          will not be color-coded (but references and ratings will
+          still be, as they are they are colored by headerexposer and
+          not in the baseline).
+
+    Returns:
+        the baseline dict loaded from baseline.json.
     """
     with open("baseline_schema.json") as baseline_schema_file:
-        baseline_schema = json_loads(baseline_schema_file.read())
+        baseline_schema = json.loads(baseline_schema_file.read())
 
     with open(baseline_path, "rb") as baseline_file:
-        baseline = json_loads(
+        baseline = json.loads(
             b_special_to_ansi(baseline_file.read(), no_colors)
         )
 
-    validate_json(baseline, baseline_schema)
+    jsonschema.validate(baseline, baseline_schema)
 
     return baseline
 
 
 def analyse_header(
     header_value: Any, header_baseline: dict
-) -> Tuple[str, list]:
+) -> Tuple[str, List[str]]:
     """Analyses a single valid header according to the baseline.
 
-    :param header_value: (string) The header's value
-    :param header_baseline: The header's baseline as loaded by
-    load_baseline()
-    :return: ((string) rating, List[string] explanations) The header's
-    rating and the list of explanations to print.
+    Args:
+        header_value:
+          (string) The header's value
+        header_baseline:
+          The header's baseline as loaded by load_baseline()
+
+    Returns:
+        ((str) rating, List[str] explanations) The header's rating and
+        the list of explanations to print.
     """
     explanations = []
 
     if header_baseline.get("case_sensitive_patterns", False):
-        re_compile = partial(regex_compile)
+        re_compile = functools.partial(re.compile)
     else:
-        re_compile = partial(regex_compile, flags=IGNORECASE)
+        re_compile = functools.partial(re.compile, flags=re.IGNORECASE)
 
     # First we validate the header. If it does not match the validation
     # pattern, we ~~yell at the user's face~~stop the analysis and
@@ -547,19 +584,26 @@ def analyse_headers(
     regex patterns to identify in the headers' values, and returns the
     ratings and explanations associated in the baseline.
 
-    :param headers: The headers to analyse.
-    :param baseline: The baseline to compare the headers' values
-    against. It should be loaded from load_baseline.
-    :param short: If True, the headers' descriptions and references as
-    contained in the baseline will not be added to the explanations.
-    :return: The list of findings, each finding being a dict like this:
-            {
-                "header": (string) header_name,
-                "value": (string) header_value,
-                "rating": (string) rating,
-                "explanations": (List[string]) explanations,
-                "references": (List[string]) references
-            }
+    Args:
+        headers:
+          The headers to analyse.
+        baseline:
+          The baseline to compare the headers' values against. It
+          should be loaded from load_baseline().
+        short:
+          If True, the headers' descriptions and references as
+          contained in the baseline will not be added to the
+          explanations.
+
+    Returns:
+        The list of findings, each finding being a dict like this:
+        {
+            "header": (string) header_name,
+            "value": (string) header_value,
+            "rating": (string) rating,
+            "explanations": (List[string]) explanations,
+            "references": (List[string]) references
+        }
     """
     nice_ratings = {
         "good": special_to_ansi("[green][ＧＯＯＤ][normal]"),
@@ -619,7 +663,7 @@ def analyse_headers(
 
 def _parse_args() -> Any:
     """Parse the commandline arguments."""
-    parser = ArgumentParser()
+    parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "-m",
@@ -742,8 +786,8 @@ def _parse_args() -> Any:
         "--max-width",
         type=int,
         help="The maximum width of the output. Defaults to the screen"
-        f" width ({get_terminal_size().columns} columns)",
-        default=get_terminal_size().columns,
+        f" width ({shutil.get_terminal_size().columns} columns)",
+        default=shutil.get_terminal_size().columns,
     )
 
     parser.add_argument("url", help="The url to test")
@@ -752,7 +796,7 @@ def _parse_args() -> Any:
 
 
 def _main():
-    """Only called when the module is called directly and not imported."""
+    """Only called when the module is called directly as a script."""
     args = _parse_args()
 
     baseline = load_baseline(args.baseline_path, args.no_explanation_colors)
@@ -793,9 +837,9 @@ def _main():
         print(tabulate_dict(request_arguments, args.max_width))
 
     if not args.verify:
-        urllib3_dis_warns(InsecureRequestWarning)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    response = request(**request_arguments)
+    response = requests.request(**request_arguments)
 
     if not args.short:
         print_special("\n[blue]Response:[normal]")
