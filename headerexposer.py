@@ -104,7 +104,8 @@ def special_to_ansi(string: str, no_colors: Optional[bool] = False) -> str:
         string:
           The string in which to replace the tags.
         no_colors:
-          If this is True, all tags will be removed.
+          If this is True, all tags will be removed instead of being
+          replaced.
 
     Returns:
         The string with tags replaced or stripped.
@@ -132,7 +133,8 @@ def b_special_to_ansi(
         bstring:
           The bytestring in which to replace the tags.
         no_colors:
-          If this is True, all tags will be removed.
+          If this is True, all tags will be removed instead of being
+          replaced.
 
     Returns:
         The string with tags replaced or stripped.
@@ -190,7 +192,7 @@ def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
     # The maximum value width is equal to the maximum dict key width
     # minus the two spaces between columns minus the '\' that is added
     # to each split line to make it evident to the user that the line
-    # has been split
+    # has been split.
     max_v_width = max_width - max_dict_key_len - 3
 
     # To understand this bit of magic one needs to understand the
@@ -218,15 +220,25 @@ def _find_optimal_column_width(
     account that the tabulate() function separates columns by two
     spaces.
     The logic is the following:
-     1) find the maximum length of everyone,
-     2) if the values are short, we are in luck and the explanations
-     have more room,
-     3) if not, we try to give values and explanations about the same
-     width,
-     4) if this breaks the reference links, we try to shrink the header
-     values a bit,
-     5) if there is not enough room for the header values, we finally
-     resolve to breaking the links, as there are no other choices.
+     1. find the maximum length of everyone,
+     2. if the values are short, we are in luck and the explanations
+        have more room,
+     3. if not, we try to give values and explanations about the same
+        width,
+     4. if this breaks the reference links, we try to shrink the header
+        values a bit,
+     5. if there is not enough room for the header values, we finally
+        resolve to breaking the links, as there are no other choices.
+
+    Args:
+        findings:
+          The table of findings as returned by analyse_headers().
+        max_width:
+          We will try to produce a table not wider than this.
+
+    Returns:
+        A tuple of ints representing the width of the Value column,
+        and the width of the Explanations column.
     """
     if max_width is None:
         max_width = shutil.get_terminal_size().columns
