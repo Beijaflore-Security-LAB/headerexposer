@@ -2,13 +2,12 @@
 
 import setuptools
 
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="headerexposer",
-    version="2020.11.dev1",
+    version="0.8.a3",
     author="Alexandre Janvrin",
     author_email="alexandre.janvrin@reseau.eseo.fr",
     description="Analyse the security of your website's headers!",
@@ -17,15 +16,33 @@ setuptools.setup(
     url="https://github.com/LivinParadoX/headerexposer",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Information Technology",
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or"
+        " later (AGPLv3+)",
         "Natural Language :: English",
         "Operating System :: POSIX :: Linux",
         "Topic :: Education :: Testing",
         "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Security"
+        "Topic :: Security",
     ],
-    python_requires='>=3.6',
+    keywords="http headers security analysis owasp recommendations best"
+    " practices",
+    python_requires=">=3.7",
+    install_requires=[
+        "ansiwrap",
+        "jsonschema",
+        "requests",
+        "tabulate",
+        "urllib3",
+    ],
+    entry_points={
+        "console_scripts": [
+            "headerexposer=headerexposer.__main__:main",
+        ],
+    },
+    include_package_data=True,
 )

@@ -47,7 +47,7 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
 ```
 
 
-### headerexposer.headerexposer.analyse_header(header_value: Any, header_baseline: dict)
+### headerexposer.analyse_header(header_value: Any, header_baseline: dict)
 Analyses a single valid header according to the baseline.
 
 
@@ -68,7 +68,7 @@ Analyses a single valid header according to the baseline.
 
 
 
-### headerexposer.headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False)
+### headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False)
 Analyse response headers according to baseline.
 
 This function compares headers’ values to the baseline headers to
@@ -114,7 +114,7 @@ ratings and explanations associated in the baseline.
 
 
 
-### headerexposer.headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False)
+### headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in bytestrings.
 
 The following tags are currently supported:
@@ -138,7 +138,7 @@ The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False)
+### headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False)
 Load and validate baseline.json.
 
 This function loads the baseline.json, replaces special markings
@@ -166,7 +166,7 @@ against baseline_schema.json.
 
 
 
-### headerexposer.headerexposer.parse_request_cookies(cookies: Optional[str])
+### headerexposer.parse_request_cookies(cookies: Optional[str])
 Parse a cookies string into a dict.
 
 
@@ -190,7 +190,7 @@ Parse a cookies string into a dict.
 
 
 
-### headerexposer.headerexposer.parse_request_headers(headers: Optional[str])
+### headerexposer.parse_request_headers(headers: Optional[str])
 Parse a headers string into a dict.
 
 
@@ -214,7 +214,7 @@ Parse a headers string into a dict.
 
 
 
-### headerexposer.headerexposer.parse_request_parameters(params: Optional[str])
+### headerexposer.parse_request_parameters(params: Optional[str])
 Parse a parameters string into a dict.
 
 
@@ -238,7 +238,7 @@ Parse a parameters string into a dict.
 
 
 
-### headerexposer.headerexposer.print_special(text: str)
+### headerexposer.print_special(text: str)
 Print a string after replacing its special tags.
 
 The tags such as [green] will be replaced with their corresponding
@@ -252,7 +252,7 @@ ANSI codes. The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False)
+### headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in strings.
 
 The following tags are currently supported:
@@ -276,7 +276,7 @@ The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str)
+### headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str)
 Parse a string into a dict by splitting around delimiters.
 
 This function parses a string into a dict by splitting it around
@@ -323,7 +323,7 @@ delimiter_1 and ‘;’ as delimiter_2 will be parsed into
 
 
 
-### headerexposer.headerexposer.tabulate_dict(dictionary: dict, max_width: int = None)
+### headerexposer.tabulate_dict(dictionary: dict, max_width: int = None)
 Format a dict as a two-columns table.
 
 This function formats a dict as a two-columns table, where the
@@ -349,7 +349,7 @@ max_width.
 
 
 
-### headerexposer.headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None)
+### headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None)
 Format the findings in a nice table for printing.
 
 

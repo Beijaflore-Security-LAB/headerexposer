@@ -1,4 +1,5 @@
 # HeaderExposer
+
 Analyse the security of your website’s headers!
 
 The headerexposer module provides functions to analyse the security
@@ -6,7 +7,18 @@ of a website’s headers.
 
 It can be loaded as a module, or directly ran from the commandline.
 
-# Usage:
+# Requirements
+
+TODO
+
+# Installation
+
+```
+python -m pip install headerexposer
+```
+
+# CLI Usage
+
 ```
 usage: headerexposer.py [-h] [-m {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}]
                         [--params PARAMS] [-d DATA | -f FILE] [-H HEADERS]
@@ -68,7 +80,8 @@ optional arguments:
                         The maximum width of the output. Defaults to the
                         screen width (80 columns)
 ```
-# Basic module usage:
+
+# Basic module usage
 
 ```
 >>> import headerexposer as hdrexp
@@ -93,8 +106,7 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It 
 
 # Authors
 
-* Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr, ajanvrin520@beijaflore.com). I am currently a Penetration Tester and Cybersecurity
-Consultant at Beijaflore (https://www.beijaflore.com/en/)
+Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr, ajanvrin520@beijaflore.com). I am currently a Penetration Tester and Cybersecurity Consultant at Beijaflore (https://www.beijaflore.com/en/)
 
 # License
 

@@ -3,6 +3,7 @@
 	"$id": "https://raw.githubusercontent.com/LivinParadoX/headerexposer/master/headerexposer/baseline_schema.json",
 	"title": "Validation and documentation schema for baseline.json",
 	"description": "This schema provides documentation for any baseline.json that may be produced, as it serves to validate that the baseline.json files have the right format",
+	"$comment": "For those unfamiliar with JSON schemas, here is a good starting point: http://json-schema.org/understanding-json-schema/",
 
 	"definitions": {
 		"rating": {
@@ -15,11 +16,11 @@
 			"type": "object",
 			"properties": {
 				"pattern": {"type": "string", "format": "regex"},
-				"present": {"type": "string"},
+				"present": {"type": "string", "default": null},
 				"absent": {"type": "string", "default": null}
 			},
 			"additionalProperties": false,
-			"required": ["pattern", "present"]
+			"required": ["pattern"]
 		},
 		"rating_pattern": {
 			"description": "Rating patterns determine the header's rating. If the header's value matches against the regular expression \"pattern\", then the rating takes the value of the corresponding \"rating\".",
@@ -60,23 +61,6 @@
 					"type": "string",
 					"format": "regex"
 				},
-				"explanation_patterns": {
-					"description": "the list of explanation patterns, which will determine what is printed to the user as explanation. The order is important, as all the generated explanations will be concatenated in a long string after the header's description.",
-
-					"type": "array",
-					"items": {"$ref": "#/definitions/explanation_pattern"},
-					"uniqueItems": true,
-					"default": []
-				},
-				"rating_patterns": {
-					"description": "the list of rating patterns, which will determine the header's rating. The order is important, as the header's rating will be equal to the last matched rating pattern. It is recommended to first list the \"medium\" pattern, then the \"good\" pattern.",
-
-					"type": "array",
-					"items": {"$ref": "#/definitions/rating_pattern"},
-					"uniqueItems": true,
-					"maxItems": 2,
-					"default": []
-				},
 				"default_rating": {
 					"description": "The default rating if no rating pattern matches the header's value.",
 
@@ -99,22 +83,39 @@
 					"description": "What to tell the user if the header is absent in the HTTP response.",
 					
 					"type": "string",
-					"default": "[red]The header is absent[normal]"
+					"default": null
 				},
 				"invalid_explanation": {
 					"description": "What to tell the user if the header's value does not match the validation pattern.",
 					
 					"type": "string",
-					"default": "[red]The header is malformed.[normal]"
+					"default": null
 				},
 				"absent_or_invalid_explanation": {
 					"description": "This will be included in the explanations if the header's value neither matches the validation pattern or is absent. It is advised to use this explanation to explain what the ideal header's value would be in a manner similar to what the explanation patterns would explain.",
 					
 					"type": "string",
-					"default": null
+					"default": "[red]The header is either absent or malformed.[normal]"
+				},
+				"explanation_patterns": {
+					"description": "the list of explanation patterns, which will determine what is printed to the user as explanation. The order is important, as all the generated explanations will be concatenated in a long string after the header's description.",
+
+					"type": "array",
+					"items": {"$ref": "#/definitions/explanation_pattern"},
+					"uniqueItems": true,
+					"default": []
+				},
+				"rating_patterns": {
+					"description": "the list of rating patterns, which will determine the header's rating. The order is important, as the header's rating will be equal to the last matched rating pattern. It is recommended to first list the \"medium\" pattern, then the \"good\" pattern.",
+
+					"type": "array",
+					"items": {"$ref": "#/definitions/rating_pattern"},
+					"uniqueItems": true,
+					"maxItems": 2,
+					"default": []
 				},
 				"final_explanation": {
-					"description": "This final bit of text is added to the explanations shown to the user, regardless of the header's rating or value. Usually left null",
+					"description": "This final bit of text is added to the explanations shown to the user, regardless of the header's rating or value. Usually left null.",
 
 					"type": "string",
 					"default": null

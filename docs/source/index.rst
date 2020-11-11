@@ -1,7 +1,7 @@
 HeaderExposer
 =============
 
-.. automodule:: headerexposer.headerexposer
+.. automodule:: headerexposer
    :members:
    :undoc-members:
    :show-inheritance:

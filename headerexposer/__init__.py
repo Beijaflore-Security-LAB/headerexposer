@@ -41,6 +41,8 @@ __all__ = [
     "special_to_ansi",
     "b_special_to_ansi",
     "print_special",
+    "safe_wrap",
+    "wrap_and_join",
     "tabulate_dict",
     "tabulate_findings",
     "string_to_dict",
@@ -51,7 +53,6 @@ __all__ = [
     "analyse_header",
     "analyse_headers",
 ]
-__version__ = "2020.11.dev1"
 __author__ = "Alexandre Janvrin"
 __description__ = "Analyse the security of your website's headers!"
 __license__ = "AGPLv3+"
@@ -62,7 +63,8 @@ import functools
 import json
 import re
 import shutil
-import textwrap
+import ansiwrap
+from importlib import resources
 from typing import Any, List, Optional, Tuple, Union
 
 import jsonschema  # type: ignore
@@ -163,6 +165,120 @@ def print_special(text: str) -> None:
     print(special_to_ansi(text))
 
 
+def safe_wrap(text: str, width: int = 70, **kwargs) -> List[str]:
+    """Wrap a paragraph of text, returning a list of wrapped lines.
+
+    Reformat the single paragraph in 'text' so it fits in lines of no
+    more than 'width' columns, and return a list of wrapped lines.  By
+    default, tabs in 'text' are expanded with string.expandtabs(), and
+    all other whitespace characters (including newline) are converted
+    to space.  See textwrap's TextWrapper class for available keyword
+    args to customize wrapping behavior.
+
+    This function is actually a wrapper (no pun intended) around
+    ansiwrap's wrap() function. It ensures than no dangling ANSI code
+    is present at the end of a line, in order to eliminate unwanted
+    color behavior such as color being applied to surrounding columns
+    in a table. When a non-zero ANSI code is found in a string without
+    a closing zero ANSI code, a zero ANSI code is appended to the
+    string and the previously found ANSI code is prepended to the next
+    line.
+
+    Args:
+        text:
+          The long text to wrap.
+        width:
+          The maximum width of each line.
+        kwargs:
+          See help("textwrap.TextWrapper") for a list of keyword
+          arguments to customize wrapper behavior.
+    """
+    zero_ansi_pattern = re.compile(r"(\033|\u001b|\x1b)\[0m")
+    nonzero_ansi_pattern = re.compile(r"((\033|\u001b|\x1b)\[[1-9]+\d*m)")
+
+    lines = ansiwrap.wrap(text, width=width, **kwargs)
+
+    for line_index in range(len(lines)):
+
+        # We only care about the part of the sting after the last zero
+        # ANSI code
+        end_of_line = zero_ansi_pattern.split(lines[line_index])[-1]
+
+        # Are there any non-zero ANSI code ?
+        matches = [m[0] for m in nonzero_ansi_pattern.findall(end_of_line)]
+
+        # If yes, we append a zero ANSI code to the string, and prepend
+        # The next one with any previously found ANSI codes. If there
+        # is no "next one", we'd rather suppress some formatting than
+        # completely override neighbours' formatting...
+        if matches:
+            lines[line_index] += "\033[0m"
+
+            try:
+                lines[line_index + 1] = "".join(
+                    matches + [lines[line_index + 1]]
+                )
+
+            except IndexError:
+                pass
+
+    return lines
+
+
+def wrap_and_join(
+    text: str, width: int = 70, sep: str = "\n", **kwargs
+) -> str:
+    """Wrap a paragraph of text around a separator.
+
+    Reformat the single paragraph in 'text' so it fits in lines of no
+    more than 'width' columns, and return a list of wrapped lines
+    joined around a separator.  By default, tabs in 'text' are expanded
+    with string.expandtabs(), and all other whitespace characters
+    (including newline) are converted to space.  See textwrap's
+    TextWrapper class for available keyword args to customize wrapping
+    behavior.
+
+    Args:
+        text:
+          The long text to wrap.
+        width:
+          The maximum width of each line.
+        sep:
+          The delimiter around which the lines will be joined.
+        kwargs:
+          See help("textwrap.TextWrapper") for a list of keyword
+          arguments to customize wrapper behavior.
+    """
+    ansi_pattern = re.compile(r"(\033|\u001b\x1b)\[\d+m")
+
+    optimal_width = width
+
+    lines = safe_wrap(text, width=width, **kwargs)
+
+    # If any line is longer than `width` after joining (not counting
+    # ANSI codes), it's not good, we need to decrease the width.
+    max_line_length = max(
+        [
+            len(ansi_pattern.sub("", line))
+            for line in sep.join(lines).splitlines()
+        ]
+    )
+
+    # We keep trying until all lines are compliant.
+    while max_line_length > width:
+        optimal_width -= 1
+
+        lines = safe_wrap(text, width=optimal_width, **kwargs)
+        max_line_length = max(
+            [
+                len(ansi_pattern.sub("", line))
+                for line in sep.join(lines).splitlines()
+            ]
+        )
+
+    return sep.join(lines)
+
+
 def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
     """Format a dict as a two-columns table.
 
@@ -187,15 +303,11 @@ def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
     max_dict_key_len = len(max(dictionary.keys(), key=len))
 
     # The maximum value width is equal to the maximum dict key width
-    # minus the two spaces between columns minus the '\' that is added
-    # to each split line to make it evident to the user that the line
-    # has been split.
-    max_v_width = max_width - max_dict_key_len - 3
+    # minus the two spaces between columns
+    max_v_width = max_width - max_dict_key_len - 2
 
-    # To understand this bit of magic one needs to understand the
-    # textwrap.wrap() function and the "".join() method.
     table = [
-        [str(k), "\\\n".join(textwrap.wrap(str(v), width=max_v_width))]
+        [str(k), wrap_and_join(str(v), width=max_v_width, sep="\\\n")]
         for k, v in dictionary.items()
     ]
 
@@ -204,28 +316,13 @@ def tabulate_dict(dictionary: dict, max_width: int = None) -> str:
 
 def _find_optimal_column_width(
     findings: list, max_width: Optional[int] = None
-) -> Tuple[int, int]:
+) -> Tuple[int, int, int]:
     r"""Find the optimal Value and Explanation column widths.
 
     This function does a bit of wizardry to find the optimal widths of
     the Value and Explanation columns of a findings table.
-    It compromises between the header names and ratings, which must not
-    be broken, the header values, which must make it clear to the user
-    that they are being broken by printing '\' at the end of each
-    broken line, the reference links, which must preferably not be
-    broken lest they become unclickable, etc. Everything taking into
-    account that the tabulate() function separates columns by two
-    spaces.
-    The logic is the following:
-     1. find the maximum length of everyone,
-     2. if the values are short, we are in luck and the explanations
-        have more room,
-     3. if not, we try to give values and explanations about the same
-        width,
-     4. if this breaks the reference links, we try to shrink the header
-        values a bit,
-     5. if there is not enough room for the header values, we finally
-        resolve to breaking the links, as there are no other choices.
+    Roughly 15% of the width goes to headers' names, 25% to headers'
+    values, 8% to ratings, the rest to explanations.
 
     Args:
         findings:
@@ -234,59 +331,80 @@ def _find_optimal_column_width(
           We will try to produce a table not wider than this.
 
     Returns:
-        A tuple of ints representing the width of the Value column,
-        and the width of the Explanations column.
+        A tuple of ints representing the widths of the Name, Value, and
+        Explanations columns.
     """
     if max_width is None:
         max_width = shutil.get_terminal_size().columns
+
+    # taking into account the 6 spaces needed for table formatting.
+    max_width -= 6
 
     max_header_name_len = 0
     max_header_value_len = 0
     max_rating_len = 0
     max_reference_len = 0
 
-    # In this loop we get the max width of everyone
+    ansi_pattern = re.compile(r"(\033|\u001b|\x1b)\[\d+m")
+
+    # In this loop we get the max width of everyone.
     for finding in findings:
 
-        # If it does not have a length it will most certainly be
-        # printed as None, True or False, so 4 characters
+        max_header_name_len = max(max_header_name_len, len(finding["header"]))
+
+        # If a value does not have a length it will most certainly be
+        # printed as Absent, so 6 characters.
         try:
             value_len = len(finding["value"])
         except TypeError:
-            value_len = 4
-
-        max_header_name_len = max(max_header_name_len, len(finding["header"]))
+            value_len = 6
         max_header_value_len = max(max_header_value_len, value_len)
-        max_rating_len = max(max_rating_len, len(finding["rating"]))
+
+        # We need to take into account that the police we use for
+        # ratings is twice wider than standard chars (this does not
+        # appy to the surrounding brackets), and that ansi special
+        # codes do not count.
+        max_rating_len = max(
+            max_rating_len,
+            (len(ansi_pattern.sub("", finding["rating"])) - 2) * 2 + 2,
+        )
 
         for ref in finding["references"]:
             max_reference_len = max(max_reference_len, len(ref))
 
-    # Now we know that the values and explanations will have to share
-    # columns_width characters of space (the 7 constant accounts for
-    # the 6 spaces added by tabulate() between the columns, and the
-    # extra '\' that we will append to the header values to make it
-    # clear to the user that the headers' values are being broken)
-    columns_width = max_width - max_header_name_len - max_rating_len - 7
+    # Header names should take roughly 15% of the table with a minimum of 12
+    # chars (unless they are shorter than 12 chars).
+    n_width = max(
+        min(max_header_name_len, 12),
+        min(max_header_name_len, round(0.15 * max_width)),
+    )
 
-    # are the values short ? Great, we have room
-    if max_header_value_len <= columns_width // 2:
-        e_width = columns_width - max_header_value_len
-        v_width = max_header_value_len
+    # Header values should take roughly 30% of the table with a minimum of 20
+    # chars (unless they are shorter than 20 chars).
+    v_width = max(
+        min(max_header_value_len, 20),
+        min(max_header_value_len, round(0.25 * max_width)),
+    )
 
-    # else we try to give everyone the same space
-    else:
-        v_width = columns_width // 2
-        e_width = columns_width // 2
+    # Explanations take the remaining space. The extra -2 takes into account
+    # the '\' char that is appended to broken header names and values.
+    e_width = max(max_width - n_width - v_width - max_rating_len - 2, 20)
 
-    # Oops, it breaks the links. Can we give the values a little less
-    # space ? If not, well, we have no choice but to break the links
-    if max_reference_len > e_width:
-        if max_reference_len < columns_width - 10:
-            e_width = max_reference_len
-            v_width = columns_width - e_width
+    # DEBUG
+    # print(max_width)
+    # print(n_width, v_width, max_rating_len, e_width)
+    # print(
+        # f"{n_width / (max_width - 2):.2f}, {v_width / (max_width - 2):.2f},"
+        # f" {max_rating_len / (max_width - 2):.2f},"
+        # f" {e_width / (max_width - 2):.2f}"
+    # )
+    # print(max_width - n_width - v_width - max_rating_len - e_width - 2)
+    # print(
+        # (max_width - n_width - v_width - max_rating_len - e_width - 2)
+        # / (max_width - 2)
+    # )
 
-    return e_width, v_width
+    return n_width, v_width, e_width
 
 
 def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
@@ -307,15 +425,19 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
     findings_table = []
 
     # for the table to fit on screen we need to know the widths of the
-    # explanation and value columns.
-    e_width, v_width = _find_optimal_column_width(findings, max_width)
+    # name, value and explanations columns.
+    n_width, v_width, e_width = _find_optimal_column_width(findings, max_width)
 
     for finding in findings:
 
+        name = wrap_and_join(finding["header"], width=n_width, sep="\\\n")
+
         if finding["value"] is None:
-            value = "Absent"
+            value = special_to_ansi("[blue]Absent[normal]")
+        elif finding["value"] is "":
+            value = special_to_ansi("[blue]Empty[normal]")
         else:
-            value = "\\\n".join(textwrap.wrap(finding["value"], width=v_width))
+            value = wrap_and_join(finding["value"], width=v_width, sep="\\\n")
 
         rating = finding["rating"]
 
@@ -327,7 +449,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         # column width. Once this is done we again join the lines
         paragraphs = " ".join(finding["explanations"]).splitlines()
 
-        lines = ["\n".join(textwrap.wrap(p, e_width)) for p in paragraphs]
+        lines = [wrap_and_join(p, e_width) for p in paragraphs]
 
         explanation = "\n".join(lines)
 
@@ -341,7 +463,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         references = finding["references"]
         if references != []:
 
-            lines = ["\n".join(textwrap.wrap(r, e_width)) for r in references]
+            lines = [wrap_and_join(r, e_width) for r in references]
 
             ref_lines = "\n".join(lines).splitlines()
 
@@ -353,7 +475,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
 
             explanation += special_to_ansi("[normal]")
 
-        findings_table += [[finding["header"], value, rating, explanation]]
+        findings_table += [[name, value, rating, explanation]]
 
     table_headers = ["Header", "Value", "Rating", "Explanation"]
     return tabulate.tabulate(findings_table, headers=table_headers)
@@ -408,6 +530,9 @@ def parse_request_parameters(params: Union[str, None]) -> Union[dict, None]:
     Returns:
         A dict of parameter_name: parameter_value pairs. Returns None
         if params is None.
+
+    Raises:
+        IndexError if the input params string cannot be parsed.
     """
     if params is None:
         return None
@@ -435,6 +560,9 @@ def parse_request_headers(headers: Union[str, None]) -> dict:
     Returns:
         A dict of header_name: header_value pairs. Returns an empty
         dict if headers is None.
+
+    Raises:
+        IndexError if the input headers string cannot be parsed.
     """
     if headers is None:
         return {}
@@ -463,6 +591,9 @@ def parse_request_cookies(cookies: Union[str, None]) -> Union[dict, None]:
     Returns:
         A dict of cookie_name: cookie_value pairs. Returns None if
         cookies is None.
+
+    Raises:
+        IndexError if the input cookies string cannot be parsed.
     """
     if cookies is None:
         return None
@@ -502,8 +633,11 @@ def load_baseline(
     Returns:
         the baseline dict loaded from baseline.json.
     """
-    with open("baseline_schema.json") as baseline_schema_file:
-        baseline_schema = json.loads(baseline_schema_file.read())
+    with resources.path(
+        "headerexposer", "baseline_schema.json"
+    ) as baseline_schema_path:
+        with open(baseline_schema_path) as baseline_schema_file:
+            baseline_schema = json.loads(baseline_schema_file.read())
 
     with open(baseline_path, "rb") as baseline_file:
         baseline = json.loads(
@@ -545,17 +679,11 @@ def analyse_header(
 
     if not v_pattern.match(header_value):
 
-        explanations += [
-            header_baseline.get(
-                "invalid_explanation",
-                special_to_ansi("[red]The header is malformed.[normal]"),
-            )
-        ]
+        if header_baseline.get("invalid_explanation") is not None:
+            explanations += [header_baseline["invalid_explanation"]]
 
         if header_baseline.get("absent_or_invalid_explanation") is not None:
-            explanations += [
-                header_baseline.get("absent_or_invalid_" "explanation")
-            ]
+            explanations += [header_baseline["absent_or_invalid_explanation"]]
 
         rating = header_baseline.get("invalid_rating", "bad")
 
@@ -574,8 +702,9 @@ def analyse_header(
             pattern = re_compile(e_pattern["pattern"])
 
             if pattern.match(header_value):
-                exp = pattern.sub(e_pattern["present"], header_value)
-                explanations += [exp]
+                if e_pattern.get("present") is not None:
+                    exp = pattern.sub(e_pattern["present"], header_value)
+                    explanations += [exp]
 
             elif e_pattern.get("absent") is not None:
                 explanations += [e_pattern["absent"]]
@@ -633,18 +762,11 @@ def analyse_headers(
 
         if header_value is None:
 
-            explanations += [
-                b_header.get(
-                    "absent_explanation",
-                    special_to_ansi("[red]The header is absent[normal]"),
-                )
-            ]
+            if b_header.get("absent_explanation") is not None:
+                explanations += [b_header["absent_explanation"]]
 
             if b_header.get("absent_or_invalid_explanation") is not None:
-
-                explanations += [
-                    b_header.get("absent_or_invalid_" "explanation")
-                ]
+                explanations += [b_header["absent_or_invalid_explanation"]]
 
             rating = b_header.get("absent_rating", "bad")
 
