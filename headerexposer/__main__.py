@@ -233,9 +233,9 @@ def main():
         description=f"{BANNER}\nAnalyse the security of your website's"
         " headers!",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="If you want to write a new baseline.json,\n"
+        epilog="If you want to write a new baseline.json,"
         " consider using baseline_schema.json\n"
-        f"({he.BASELINE_SCHEMA_PATH})\n"
+        f"({he.BASELINE_SCHEMA_PATH}) "
         "as documentation.\n\n"
         "Authors:\n"
         "  * Frédéric Proux, senior pentester at Beijaflore\n"
@@ -289,14 +289,14 @@ def main():
     request_options.add_argument(
         "-m",
         "--method",
-        help='HTTP method to use for the request. Default: "GET"',
+        help='HTTP method to use for the request. Default: "GET".',
         choices=["GET", "OPTIONS", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
         default="GET",
     )
 
     request_options.add_argument(
         "--params",
-        help="Add multiple, ampersand-separated parameters to the request",
+        help="Add multiple, ampersand-separated parameters to the request.",
     )
 
     group = request_options.add_mutually_exclusive_group()
@@ -305,38 +305,38 @@ def main():
         "-d",
         "--data",
         help="Data to append to the request."
-        " Mutually exclusive with --file",
+        " Mutually exclusive with --file.",
     )
 
     group.add_argument(
         "-f",
         "--file",
         help="Path to a file to append to the request."
-        " Mutually exclusive with --data",
+        " Mutually exclusive with --data.",
     )
 
     request_options.add_argument(
         "-H",
         "--headers",
-        help="Add multiple, newline-separated HTTP headers to the request",
+        help="Add multiple, newline-separated HTTP headers to the request.",
     )
 
     request_options.add_argument(
         "-C",
         "--cookies",
-        help="Add multiple, semicolon-separated cookies to the request",
+        help="Add multiple, semicolon-separated cookies to the request.",
     )
 
     request_options.add_argument(
         "-U",
         "--username",
-        help="username to use in Basic/Digest/Custom HTTP Authentication",
+        help="username to use in Basic/Digest/Custom HTTP Authentication.",
     )
 
     request_options.add_argument(
         "-P",
         "--password",
-        help="password to use in Basic/Digest/Custom HTTP Authentication",
+        help="password to use in Basic/Digest/Custom HTTP Authentication.",
     )
 
     request_options.add_argument(
@@ -344,7 +344,7 @@ def main():
         "--timeout",
         type=float,
         help="How many seconds to wait for the server to send data"
-        " before giving up, as float",
+        " before giving up, as float.",
     )
 
     request_options.add_argument(
@@ -352,37 +352,37 @@ def main():
         "--disallow-redirects",
         action="store_true",
         help="Disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection."
-        " Defaults to enabled redirection",
+        " Defaults to enabled redirection.",
     )
 
     request_options.add_argument(
-        "-p", "--proxy", help="Proxy to use for the request"
+        "-p", "--proxy", help="Proxy to use for the request."
     )
 
     request_options.add_argument(
         "-k",
         "--verify",
         action="store_true",
-        help="Verify SSL certificates. Defaults to an insecure behavior",
+        help="Verify SSL certificates. Defaults to an insecure behavior.",
     )
 
     request_options.add_argument(
         "-c",
         "--cert",
         help="Optional path to the SSL client .pem certificate"
-        " for client authentication",
+        " for client authentication.",
     )
 
     request_options.add_argument(
         "-a",
         "--user-agent",
         help="User Agent to use."
-        " Defaults to a recent Google Chrome user agent",
+        " Defaults to a recent Google Chrome user agent.",
         default="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1"
         " (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1",
     )
 
-    analysis.add_argument("url", help="The url to test")
+    analysis.add_argument("url", help="The url to test.")
 
     # Okay this may seem ugly but I want these argument available
     # *everywhere*. And at the end, not like --baseline-path.
@@ -409,7 +409,7 @@ def main():
             "--max-width",
             type=int,
             help="The maximum width of the output. Defaults to the screen"
-            f" width ({shutil.get_terminal_size().columns} columns)",
+            f" width ({shutil.get_terminal_size().columns} columns).",
             default=shutil.get_terminal_size().columns,
         )
 

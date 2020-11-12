@@ -95,7 +95,7 @@
 					"description": "This will be included in the explanations if the header's value neither matches the validation pattern or is absent. It is advised to use this explanation to explain what the ideal header's value would be in a manner similar to what the explanation patterns would explain.",
 					
 					"type": "string",
-					"default": "[red]The header is either absent or malformed.[normal]"
+					"default": null
 				},
 				"explanation_patterns": {
 					"description": "the list of explanation patterns, which will determine what is printed to the user as explanation. The order is important, as all the generated explanations will be concatenated in a long string after the header's description.",
