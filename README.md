@@ -31,144 +31,156 @@ python -m pip install headerexposer
 
 Global usage:
 ```
-usage: headerexposer [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors] [-w MAX_WIDTH]
-                     {analyse,demo,show} ...
-
- ┌────────────────────────────────────────────────────┐
- │░█░█░█▀▀░█▀█░█▀▄░█▀▀░█▀▄░█▀▀░█░█░█▀█░█▀█░█▀▀░█▀▀░█▀▄│
- │░█▀█░█▀▀░█▀█░█░█░█▀▀░█▀▄░█▀▀░▄▀▄░█▀▀░█░█░▀▀█░█▀▀░█▀▄│
- │░▀░▀░▀▀▀░▀░▀░▀▀░░▀▀▀░▀░▀░▀▀▀░▀░▀░▀░░░▀▀▀░▀▀▀░▀▀▀░▀░▀│
- └────────────────────────────────────────────────────┘
-
-Analyse the security of your website's headers!
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -b BASELINE_PATH, --baseline-path BASELINE_PATH
-                        Path to the baseline.json file for the header analysis (default:
-                        /home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline.json).
-
-commands:
-  Use [command] -h for additional help.
-
-  {analyse,demo,show}
-    analyse             Analyse a given url's headers.
-    demo                Show a demonstration of what would be printed for sample headers with the
-                        selected baseline.json.
-    show                Show the selected baseline without doing any analysis.
-
-output options:
-  -s, --short           Shorten the output. Do not print the request parameters, do not print the
-                        response details, do not print headers' descriptions, do not print
-                        references.
-  --no-explanation-colors
-                        Suppress colors in explanations, except in reference links.
-  -w MAX_WIDTH, --max-width MAX_WIDTH
-                        The maximum width of the output. Defaults to the screen width (103 columns).
-
-If you want to write a new baseline.json, consider using baseline_schema.json
-(/home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline_schema.json) as documentation.
-
-Authors:
-  * Frédéric Proux, senior pentester at Beijaflore
-  * Alexandre Janvrin, pentester at Beijaflore
-    (https://www.beijaflore.com/en/)
-
-License: AGPLv3+
-
-This software is provided "as is", without any warranty of any kind, express or implied.
+usage: headerexposer [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors]               
+                     [-w MAX_WIDTH]                                                       
+                     {analyse,demo,show} ...                                              
+                                                                                          
+Analyse the security of your website's headers!                                           
+                                                                                          
+optional arguments:                                                                       
+  -h, --help            show this help message and exit                                   
+  -b BASELINE_PATH, --baseline-path BASELINE_PATH                                         
+                        Path to the baseline.json file for the header analysis (default:  
+                        /home/aja/.local/lib/python3.8/site-                              
+                        packages/headerexposer/baseline.json).                            
+                                                                                          
+commands:                                                                                 
+  Use [command] -h for additional help.                                                   
+                                                                                          
+  {analyse,demo,show}                                                                     
+    analyse             Analyse a given url's headers.                                    
+    demo                Show a demonstration of what would be printed for sample headers  
+                        with the selected baseline.json.                                  
+    show                Show the selected baseline without doing any analysis.            
+                                                                                          
+output options:                                                                           
+  -s, --short           Shorten the output. Do not print the request parameters, do not   
+                        print the response details, do not print headers' descriptions,   
+                        do not print references.                                          
+  --no-explanation-colors                                                                 
+                        Suppress colors in explanations, except in reference links.       
+  -w MAX_WIDTH, --max-width MAX_WIDTH                                                     
+                        The maximum width of the output. Defaults to the screen width     
+                        (90 columns).                                                     
+                                                                                          
+If you want to write a new baseline.json, consider using baseline_schema.json             
+(/home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline_schema.json) as docum
+entation.                                                                                 
+                                                                                          
+Authors:                                                                                  
+  * Frédéric Proux, senior pentester at Beijaflore                                        
+  * Alexandre Janvrin, pentester at Beijaflore                                            
+    (https://www.beijaflore.com/en/)                                                      
+                                                                                          
+License: AGPLv3+                                                                          
+                                                                                          
+This software is provided "as is", without any warranty of any kind, express or implied.  
 For more information, please consult https://github.com/LivinParadoX/headerexposer.
 ```
 analyse usage:
 ```
-usage: headerexposer analyse [-h] [-b BASELINE_PATH] [-m {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}]
-                             [--params PARAMS] [-d DATA | -f FILE] [-H HEADERS] [-C COOKIES]
-                             [-U USERNAME] [-P PASSWORD] [-t TIMEOUT] [-r] [-p PROXY] [-k] [-c CERT]
-                             [-a USER_AGENT] [-s] [--no-explanation-colors] [-w MAX_WIDTH]
-                             url
-
-positional arguments:
-  url                   The url to test.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -b BASELINE_PATH, --baseline-path BASELINE_PATH
-                        Path to the baseline.json file for the header analysis (default:
-                        /home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline.json).
-
-request options:
-  -m {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}, --method {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}
-                        HTTP method to use for the request. Default: "GET".
-  --params PARAMS       Add multiple, ampersand-separated parameters to the request.
-  -d DATA, --data DATA  Data to append to the request. Mutually exclusive with --file.
-  -f FILE, --file FILE  Path to a file to append to the request. Mutually exclusive with --data.
-  -H HEADERS, --headers HEADERS
-                        Add multiple, newline-separated HTTP headers to the request.
-  -C COOKIES, --cookies COOKIES
-                        Add multiple, semicolon-separated cookies to the request.
-  -U USERNAME, --username USERNAME
-                        username to use in Basic/Digest/Custom HTTP Authentication.
-  -P PASSWORD, --password PASSWORD
-                        password to use in Basic/Digest/Custom HTTP Authentication.
-  -t TIMEOUT, --timeout TIMEOUT
-                        How many seconds to wait for the server to send data before giving up, as
-                        float.
-  -r, --disallow-redirects
-                        Disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection. Defaults to
-                        enabled redirection.
-  -p PROXY, --proxy PROXY
-                        Proxy to use for the request.
-  -k, --verify          Verify SSL certificates. Defaults to an insecure behavior.
-  -c CERT, --cert CERT  Optional path to the SSL client .pem certificate for client authentication.
-  -a USER_AGENT, --user-agent USER_AGENT
-                        User Agent to use. Defaults to a recent Google Chrome user agent.
-
-output options:
-  -s, --short           Shorten the output. Do not print the request parameters, do not print the
-                        response details, do not print headers' descriptions, do not print
-                        references.
-  --no-explanation-colors
-                        Suppress colors in explanations, except in reference links.
-  -w MAX_WIDTH, --max-width MAX_WIDTH
-                        The maximum width of the output. Defaults to the screen width (103 columns).
+usage: headerexposer analyse [-h] [-b BASELINE_PATH]                                      
+                             [-m {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}]                
+                             [--params PARAMS] [-d DATA | -f FILE] [-H HEADERS]           
+                             [-C COOKIES] [-U USERNAME] [-P PASSWORD] [-t TIMEOUT] [-r]   
+                             [-p PROXY] [-k] [-c CERT] [-a USER_AGENT] [-s]               
+                             [--no-explanation-colors] [-w MAX_WIDTH]                     
+                             url                                                          
+                                                                                          
+positional arguments:                                                                     
+  url                   The url to test.                                                  
+                                                                                          
+optional arguments:                                                                       
+  -h, --help            show this help message and exit                                   
+  -b BASELINE_PATH, --baseline-path BASELINE_PATH                                         
+                        Path to the baseline.json file for the header analysis (default:  
+                        /home/aja/.local/lib/python3.8/site-                              
+                        packages/headerexposer/baseline.json).                            
+                                                                                          
+request options:                                                                          
+  -m {GET,OPTIONS,HEAD,POST,PUT,PATCH,DELETE}, --method {GET,OPTIONS,HEAD,POST,PUT,PATCH,D
+ELETE}                                                                                    
+                        HTTP method to use for the request. Default: "GET".               
+  --params PARAMS       Add multiple, ampersand-separated parameters to the request.      
+  -d DATA, --data DATA  Data to append to the request. Mutually exclusive with --file.    
+  -f FILE, --file FILE  Path to a file to append to the request. Mutually exclusive with  
+                        --data.                                                           
+  -H HEADERS, --headers HEADERS                                                           
+                        Add multiple, newline-separated HTTP headers to the request.      
+  -C COOKIES, --cookies COOKIES                                                           
+                        Add multiple, semicolon-separated cookies to the request.         
+  -U USERNAME, --username USERNAME                                                        
+                        username to use in Basic/Digest/Custom HTTP Authentication.       
+  -P PASSWORD, --password PASSWORD                                                        
+                        password to use in Basic/Digest/Custom HTTP Authentication.       
+  -t TIMEOUT, --timeout TIMEOUT                                                           
+                        How many seconds to wait for the server to send data before       
+                        giving up, as float.                                              
+  -r, --disallow-redirects                                                                
+                        Disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection.       
+                        Defaults to enabled redirection.                                  
+  -p PROXY, --proxy PROXY                                                                 
+                        Proxy to use for the request.                                     
+  -k, --verify          Verify SSL certificates. Defaults to an insecure behavior.        
+  -c CERT, --cert CERT  Optional path to the SSL client .pem certificate for client       
+                        authentication.                                                   
+  -a USER_AGENT, --user-agent USER_AGENT                                                  
+                        User Agent to use. Defaults to a recent Google Chrome user        
+                        agent.                                                            
+                                                                                          
+output options:                                                                           
+  -s, --short           Shorten the output. Do not print the request parameters, do not   
+                        print the response details, do not print headers' descriptions,   
+                        do not print references.                                          
+  --no-explanation-colors                                                                 
+                        Suppress colors in explanations, except in reference links.       
+  -w MAX_WIDTH, --max-width MAX_WIDTH                                                     
+                        The maximum width of the output. Defaults to the screen width     
+                        (90 columns).                                                     
 ```
 demo usage:
 ```
-usage: headerexposer demo [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors] [-w MAX_WIDTH]     
-                                                                                                    
-optional arguments:                                                                                 
-  -h, --help            show this help message and exit                                             
-  -b BASELINE_PATH, --baseline-path BASELINE_PATH                                                   
-                        Path to the baseline.json file for the header analysis (default:            
-                        /home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline.json).  
-                                                                                                    
-output options:                                                                                     
-  -s, --short           Shorten the output. Do not print the request parameters, do not print the   
-                        response details, do not print headers' descriptions, do not print          
-                        references.                                                                 
-  --no-explanation-colors                                                                           
-                        Suppress colors in explanations, except in reference links.                 
-  -w MAX_WIDTH, --max-width MAX_WIDTH                                                               
-                        The maximum width of the output. Defaults to the screen width (103 columns).
+usage: headerexposer demo [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors]        
+                          [-w MAX_WIDTH]                                                
+                                                                                        
+optional arguments:                                                                     
+  -h, --help            show this help message and exit                                 
+  -b BASELINE_PATH, --baseline-path BASELINE_PATH                                       
+                        Path to the baseline.json file for the header analysis (default:
+                        /home/aja/.local/lib/python3.8/site-                            
+                        packages/headerexposer/baseline.json).                          
+                                                                                        
+output options:                                                                         
+  -s, --short           Shorten the output. Do not print the request parameters, do not 
+                        print the response details, do not print headers' descriptions, 
+                        do not print references.                                        
+  --no-explanation-colors                                                               
+                        Suppress colors in explanations, except in reference links.     
+  -w MAX_WIDTH, --max-width MAX_WIDTH                                                   
+                        The maximum width of the output. Defaults to the screen width   
+                        (90 columns).                                                   
 ```
 show usage:
 ```
-usage: headerexposer show [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors] [-w MAX_WIDTH]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -b BASELINE_PATH, --baseline-path BASELINE_PATH
+usage: headerexposer show [-h] [-b BASELINE_PATH] [-s] [--no-explanation-colors]        
+                          [-w MAX_WIDTH]                                                
+                                                                                        
+optional arguments:                                                                     
+  -h, --help            show this help message and exit                                 
+  -b BASELINE_PATH, --baseline-path BASELINE_PATH                                       
                         Path to the baseline.json file for the header analysis (default:
-                        /home/aja/.local/lib/python3.8/site-packages/headerexposer/baseline.json).
-
-output options:
-  -s, --short           Shorten the output. Do not print the request parameters, do not print the
-                        response details, do not print headers' descriptions, do not print
-                        references.
-  --no-explanation-colors
-                        Suppress colors in explanations, except in reference links.
-  -w MAX_WIDTH, --max-width MAX_WIDTH
-                        The maximum width of the output. Defaults to the screen width (103 columns).
+                        /home/aja/.local/lib/python3.8/site-                            
+                        packages/headerexposer/baseline.json).                          
+                                                                                        
+output options:                                                                         
+  -s, --short           Shorten the output. Do not print the request parameters, do not 
+                        print the response details, do not print headers' descriptions, 
+                        do not print references.                                        
+  --no-explanation-colors                                                               
+                        Suppress colors in explanations, except in reference links.     
+  -w MAX_WIDTH, --max-width MAX_WIDTH                                                   
+                        The maximum width of the output. Defaults to the screen width   
+                        (90 columns).                                                   
 ```
 
 # Basic module usage

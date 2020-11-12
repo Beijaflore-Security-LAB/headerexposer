@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="headerexposer",
-    version="0.8.a11",
+    version="0.8.a13",
     author="Alexandre Janvrin",
     author_email="alexandre.janvrin@reseau.eseo.fr",
     description="Analyse the security of your website's headers!",
