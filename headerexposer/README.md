@@ -2,39 +2,29 @@
 
 ## Module contents:
 
-### __init__.py
+* **\_\_init\_\_.py** – This is the core of the module. It contains most of the module's logic.
 
-This is the core of the module. It contains most of the module's logic.
+* **\_\_main\_\_.py** – This is the module's CLI. It contains the banner, the argument parsing logic, and the main CLI functions.
 
-### __main__.py
+* **baseline.json** – This is the most important file used for header analysis. It contains the headers' descriptions, analysis patterns, ratings, etc.
 
-This is the module's CLI. It contains the banner, the argument parsing logic, and the main CLI functions.
+* **baseline\_schema.json** – This file is used to validate baseline.json, and also serves as its documentation.
 
-### baseline.json
-
-This is the most important file used for header analysis. It contains the headers' descriptions, analysis patterns, ratings, etc.
-
-### baseline_schema.json
-
-This file is used to validate baseline.json, and also serves as its documentation.
-
-### old.py
-
-This soon-to-be-removed file contains a portion of the old code for reference purposes.
+* **old.py** – This soon-to-be-removed file contains a portion of the old code for reference purposes.
 
 ## Module documentation:
 
-### headerexposer.analyse_header(header_value: Any, header_baseline: dict)
+### headerexposer.analyse\_header(header\_value: Any, header\_baseline: dict)
 Analyses a single valid header according to the baseline.
 
 
 * **Parameters**
 
     
-    * **header_value** – (string) The header’s value
+    * **header\_value** – (string) The header’s value
 
 
-    * **header_baseline** – The header’s baseline as loaded by load_baseline()
+    * **header\_baseline** – The header’s baseline as loaded by load\_baseline()
 
 
 
@@ -45,7 +35,7 @@ Analyses a single valid header according to the baseline.
 
 
 
-### headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False)
+### headerexposer.analyse\_headers(headers: dict, baseline: dict, short: bool = False)
 Analyse response headers according to baseline.
 
 This function compares headers’ values to the baseline headers to
@@ -61,7 +51,7 @@ ratings and explanations associated in the baseline.
 
 
     * **baseline** – The baseline to compare the headers’ values against. It
-    should be loaded from load_baseline().
+    should be loaded from load\_baseline().
 
 
     * **short** – If True, the headers’ descriptions and references as
@@ -73,19 +63,18 @@ ratings and explanations associated in the baseline.
 * **Returns**
 
     The list of findings, each finding being a dict like this:
-    {
+```python
+{
+    "header": (string) header\_name,
+    "value": (string) header\_value,
+    "rating": (string) rating,
+    "explanations": (List[string]) explanations,
+    "references": (List[string]) references
+}
+```
 
-        “header”: (string) header_name,
-        “value”: (string) header_value,
-        “rating”: (string) rating,
-        “explanations”: (List[string]) explanations,
-        “references”: (List[string]) references
 
-    }
-
-
-
-### headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False)
+### headerexposer.b\_special\_to\_ansi(bstring: bytes, no\_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in bytestrings.
 
 The following tags are currently supported:
@@ -98,7 +87,7 @@ The following tags are currently supported:
     * **bstring** – The bytestring in which to replace the tags.
 
 
-    * **no_colors** – If this is True, all tags will be removed instead of being
+    * **no\_colors** – If this is True, all tags will be removed instead of being
     replaced.
 
 
@@ -109,21 +98,21 @@ The following tags are currently supported:
 
 
 
-### headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False)
+### headerexposer.load\_baseline(baseline\_path: str, no\_colors: Optional[bool] = False)
 Load and validate baseline.json.
 
 This function loads the baseline.json, replaces special markings
 such as [green] to their corresponding ANSI codes, and validates it
-against baseline_schema.json.
+against baseline\_schema.json.
 
 
 * **Parameters**
 
     
-    * **baseline_path** – the absolute or relative path to the baseline file.
+    * **baseline\_path** – the absolute or relative path to the baseline file.
 
 
-    * **no_colors** – If True, the special tags such as [red] will be stripped from
+    * **no\_colors** – If True, the special tags such as [red] will be stripped from
     the baseline file, which essentially means that explanations
     will not be color-coded (but references and ratings will
     still be, as they are they are colored by headerexposer and
@@ -137,79 +126,78 @@ against baseline_schema.json.
 
 
 
-### headerexposer.parse_request_cookies(cookies: Optional[str])
+### headerexposer.parse\_request\_cookies(cookies: Optional[str])
 Parse a cookies string into a dict.
 
 
 * **Parameters**
 
     **cookies** – A string representing the cookies to parse, such as
-    “cookie1=value1; cookie2=value2”, or None.
+    "cookie1=value1; cookie2=value2", or None.
 
 
 
 * **Returns**
 
-    A dict of cookie_name: cookie_value pairs. Returns None if
+    A dict of cookie\_name: cookie\_value pairs. Returns None if
     cookies is None.
 
 
 
 * **Raises**
 
-    **IndexError if the input cookies string cannot be parsed.** – 
+    **IndexError** – if the input cookies string cannot be parsed.
 
 
-
-### headerexposer.parse_request_headers(headers: Optional[str])
+### headerexposer.parse\_request\_headers(headers: Optional[str])
 Parse a headers string into a dict.
 
 
 * **Parameters**
 
     **headers** – A string representing the headers to parse, such as
-    “header1: value1nheader2: value2”, or None.
+    "header1: value1nheader2: value2", or None.
 
 
 
 * **Returns**
 
-    A dict of header_name: header_value pairs. Returns an empty
+    A dict of header\_name: header\_value pairs. Returns an empty
     dict if headers is None.
 
 
 
 * **Raises**
 
-    **IndexError if the input headers string cannot be parsed.** – 
+    **IndexError** –  if the input headers string cannot be parsed.
 
 
 
-### headerexposer.parse_request_parameters(params: Optional[str])
+### headerexposer.parse\_request\_parameters(params: Optional[str])
 Parse a parameters string into a dict.
 
 
 * **Parameters**
 
     **params** – A string representing the parameters to parse, such as
-    “param1=value1&param2=value2”, or None.
+    "param1=value1&param2=value2", or None.
 
 
 
 * **Returns**
 
-    A dict of parameter_name: parameter_value pairs. Returns None
+    A dict of parameter\_name: parameter\_value pairs. Returns None
     if params is None.
 
 
 
 * **Raises**
 
-    **IndexError if the input params string cannot be parsed.** – 
+    **IndexError** –  if the input params string cannot be parsed.
 
 
 
-### headerexposer.print_special(text: str)
+### headerexposer.print\_special(text: str)
 Print a string after replacing its special tags.
 
 The tags such as [green] will be replaced with their corresponding
@@ -223,7 +211,7 @@ ANSI codes. The following tags are currently supported:
 
 
 
-### headerexposer.safe_wrap(text: str, width: int = 70, \*\*kwargs)
+### headerexposer.safe\_wrap(text: str, width: int = 70, \*\*kwargs)
 Wrap a paragraph of text, returning a list of wrapped lines.
 
 Reformat the single paragraph in ‘text’ so it fits in lines of no
@@ -252,12 +240,12 @@ line.
     * **width** – The maximum width of each line.
 
 
-    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    * **kwargs** – See help("textwrap.TextWrapper") for a list of keyword
     arguments to customize wrapper behavior.
 
 
 
-### headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False)
+### headerexposer.special\_to\_ansi(string: str, no\_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in strings.
 
 The following tags are currently supported:
@@ -270,7 +258,7 @@ The following tags are currently supported:
     * **string** – The string in which to replace the tags.
 
 
-    * **no_colors** – If this is True, all tags will be removed instead of being
+    * **no\_colors** – If this is True, all tags will be removed instead of being
     replaced.
 
 
@@ -281,18 +269,18 @@ The following tags are currently supported:
 
 
 
-### headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str)
+### headerexposer.string\_to\_dict(string: str, delimiter\_1: str, delimiter\_2: str)
 Parse a string into a dict by splitting around delimiters.
 
 This function parses a string into a dict by splitting it around
 delimiters, and eliminating superfluous white spaces.
 
-For example, “param1: value1; param2: value2” with ‘:’ as
-delimiter_1 and ‘;’ as delimiter_2 will be parsed into
+For example, "param1: value1; param2: value2" with ‘:’ as
+delimiter\_1 and ‘;’ as delimiter\_2 will be parsed into
 {
 
-> “param1”: “value1”,
-> “param2”: “value2”
+> "param1": "value1",
+> "param2": "value2"
 
 }
 
@@ -303,10 +291,10 @@ delimiter_1 and ‘;’ as delimiter_2 will be parsed into
     * **string** – The string to parse.
 
 
-    * **delimiter_1** – The delimiter which separates the key: value pairs.
+    * **delimiter\_1** – The delimiter which separates the key: value pairs.
 
 
-    * **delimiter_2** – The delimiter which separates the keys from the values.
+    * **delimiter\_2** – The delimiter which separates the keys from the values.
 
 
 
@@ -317,17 +305,17 @@ delimiter_1 and ‘;’ as delimiter_2 will be parsed into
 
 * **Raises**
 
-    **IndexError if the input string cannot be parsed.** – 
+    **IndexError** –  if the input string cannot be parsed.
 
 
 
-### headerexposer.tabulate_dict(dictionary: dict, max_width: int = None)
+### headerexposer.tabulate\_dict(dictionary: dict, max\_width: int = None)
 Format a dict as a two-columns table.
 
 This function formats a dict as a two-columns table, where the
 first column is the dict keys and the second column is the values.
 It wraps the value column to not produce a table wider than
-max_width.
+max\_width.
 
 
 * **Parameters**
@@ -336,8 +324,8 @@ max_width.
     * **dictionary** – The dict to turn into a nice table.
 
 
-    * **max_width** – If specified, the function will try to wrap the values in
-    order to not produce a table wider than max_width characters.
+    * **max\_width** – If specified, the function will try to wrap the values in
+    order to not produce a table wider than max\_width characters.
 
 
 
@@ -347,7 +335,7 @@ max_width.
 
 
 
-### headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None)
+### headerexposer.tabulate\_findings(findings: list, max\_width: Optional[int] = None)
 Format the findings in a nice table for printing.
 
 
@@ -355,11 +343,11 @@ Format the findings in a nice table for printing.
 
     
     * **findings** – The list of finding items to format. This should come from
-    the analyse_headers() function.
+    the analyse\_headers() function.
 
 
-    * **max_width** – If specified, the function will try to produce a table at
-    most max_width characters wide.
+    * **max\_width** – If specified, the function will try to produce a table at
+    most max\_width characters wide.
 
 
 
@@ -370,7 +358,7 @@ Format the findings in a nice table for printing.
 
 
 
-### headerexposer.wrap_and_join(text: str, width: int = 70, sep: str = '\\n', \*\*kwargs)
+### headerexposer.wrap\_and\_join(text: str, width: int = 70, sep: str = '\\n', \*\*kwargs)
 Wrap a paragraph of text around a separator.
 
 Reformat the single paragraph in ‘text’ so it fits in lines of no
@@ -394,5 +382,5 @@ behavior.
     * **sep** – The delimiter around which the lines will be joined.
 
 
-    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    * **kwargs** – See help("textwrap.TextWrapper") for a list of keyword
     arguments to customize wrapper behavior.

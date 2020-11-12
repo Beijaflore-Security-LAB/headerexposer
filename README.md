@@ -197,7 +197,7 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It 
 # Authors
 
 * Frédéric Proux, senior penetration tester at Beijaflore. I created the original headerexposer which helped Beijaflore's auditors to test the security of our customers' websites' headers for many years!
-* Alexandre Janvrin, penetration tester at Beijaflore. I improved upon Fred's design by adding the current pattern-matching system, many header explanations, the ability to send custom headers, cookies, parameters, etc. in the initial request, and nice cross-platform colored table outputs!
+* Alexandre Janvrin, penetration tester at Beijaflore. I improved upon Fred's design by adding the current pattern-matching system, many header explanations, the ability to send custom headers, cookies, parameters, etc. in the initial request, and nice cross-platform colored table outputs!  
 https://www.beijaflore.com/en/
 
 # License
