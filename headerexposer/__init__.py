@@ -24,7 +24,7 @@ Basic module usage:
 >>> print(he.tabulate_findings(findings))
 Header                     Value       Rating      Explanation
 -------------------------  ----------  ----------  ------------------
-Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
+Strict-Transport-Security  Absent      [B A D]    The header is
                                                    absent.  It is
                                                    recommended to set
                                                    the header's value
@@ -63,24 +63,15 @@ import functools
 import json
 import re
 import shutil
-import ansiwrap
 from importlib import resources
 from typing import Any, List, Optional, Tuple, Union
 
+import ansiwrap  # type: ignore
+import colorama  # type: ignore
 import jsonschema  # type: ignore
 import tabulate
 
-_BANNER = "".join(
-    [
-        "\n \033[1;94m┌───────────────────────────────\033[37m───────────────",
-        "─\033[90m─────┐\n \033[94m│░█░█░█▀\033[34m▀░█▀█░█▀▄░█▀▀░█▀\033[37m▄░",
-        "█▀▀░█░█░█▀█░█▀\033[90m█░█▀▀░█▀▀░█▀▄│\n \033[34m│░█▀█░█▀▀░█▀█░█░\033[",
-        "37m█░█▀▀░█▀▄░█▀▀░▄▀\033[90m▄░█▀▀░█░█░▀▀█░█▀\033[94m▀░█▀▄│\n \033[34m",
-        "│░▀░▀░▀▀\033[37m▀░▀░▀░▀▀░░▀▀▀░▀░\033[90m▀░▀▀▀░▀░▀░▀░░░▀▀\033[94m▀░▀▀",
-        "▀░▀▀▀░▀░▀│\n \033[37m└───────────────\033[90m────────────────\033[94",
-        "m────────────────\033[34m─────┘\033[0m\n",
-    ]
-)
+colorama.init()
 
 _SPECIALS = {
     "[red]": 91,
@@ -91,6 +82,11 @@ _SPECIALS = {
     "[underline]": 4,
     "[normal]": 0,
 }
+
+with resources.path(
+    "headerexposer", "baseline_schema.json"
+) as baseline_schema_path:
+    BASELINE_SCHEMA_PATH = baseline_schema_path
 
 
 def special_to_ansi(string: str, no_colors: Optional[bool] = False) -> str:
@@ -360,13 +356,10 @@ def _find_optimal_column_width(
             value_len = 6
         max_header_value_len = max(max_header_value_len, value_len)
 
-        # We need to take into account that the police we use for
-        # ratings is twice wider than standard chars (this does not
-        # appy to the surrounding brackets), and that ansi special
-        # codes do not count.
+        # Ansi special codes do not count.
         max_rating_len = max(
             max_rating_len,
-            (len(ansi_pattern.sub("", finding["rating"])) - 2) * 2 + 2,
+            len(ansi_pattern.sub("", finding["rating"])),
         )
 
         for ref in finding["references"]:
@@ -394,14 +387,14 @@ def _find_optimal_column_width(
     # print(max_width)
     # print(n_width, v_width, max_rating_len, e_width)
     # print(
-        # f"{n_width / (max_width - 2):.2f}, {v_width / (max_width - 2):.2f},"
-        # f" {max_rating_len / (max_width - 2):.2f},"
-        # f" {e_width / (max_width - 2):.2f}"
+    # f"{n_width / (max_width - 2):.2f}, {v_width / (max_width - 2):.2f},"
+    # f" {max_rating_len / (max_width - 2):.2f},"
+    # f" {e_width / (max_width - 2):.2f}"
     # )
     # print(max_width - n_width - v_width - max_rating_len - e_width - 2)
     # print(
-        # (max_width - n_width - v_width - max_rating_len - e_width - 2)
-        # / (max_width - 2)
+    # (max_width - n_width - v_width - max_rating_len - e_width - 2)
+    # / (max_width - 2)
     # )
 
     return n_width, v_width, e_width
@@ -434,12 +427,10 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
 
         if finding["value"] is None:
             value = special_to_ansi("[blue]Absent[normal]")
-        elif finding["value"] is "":
+        elif finding["value"] == "":
             value = special_to_ansi("[blue]Empty[normal]")
         else:
             value = wrap_and_join(finding["value"], width=v_width, sep="\\\n")
-
-        rating = finding["rating"]
 
         # To understand this, one needs to know that explanations is a
         # list of strings that may or may not contain newlines. We
@@ -447,11 +438,12 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
         # newlines, we now have paragraphs. But these paragraphs now
         # need to be split to smaller lines that fit in the explanation
         # column width. Once this is done we again join the lines
-        paragraphs = " ".join(finding["explanations"]).splitlines()
-
-        lines = [wrap_and_join(p, e_width) for p in paragraphs]
-
-        explanation = "\n".join(lines)
+        explanation = "\n".join(
+            [
+                wrap_and_join(p, e_width)
+                for p in " ".join(finding["explanations"]).splitlines()
+            ]
+        )
 
         # References are annoying because we want them in blue and
         # underlined. But if we simply apply ANSI codes at the start
@@ -475,7 +467,7 @@ def tabulate_findings(findings: list, max_width: Optional[int] = None) -> str:
 
             explanation += special_to_ansi("[normal]")
 
-        findings_table += [[name, value, rating, explanation]]
+        findings_table += [[name, value, finding["rating"], explanation]]
 
     table_headers = ["Header", "Value", "Rating", "Explanation"]
     return tabulate.tabulate(findings_table, headers=table_headers)
@@ -633,11 +625,8 @@ def load_baseline(
     Returns:
         the baseline dict loaded from baseline.json.
     """
-    with resources.path(
-        "headerexposer", "baseline_schema.json"
-    ) as baseline_schema_path:
-        with open(baseline_schema_path) as baseline_schema_file:
-            baseline_schema = json.loads(baseline_schema_file.read())
+    with open(BASELINE_SCHEMA_PATH) as baseline_schema_file:
+        baseline_schema = json.loads(baseline_schema_file.read())
 
     with open(baseline_path, "rb") as baseline_file:
         baseline = json.loads(
@@ -744,9 +733,9 @@ def analyse_headers(
         }
     """
     nice_ratings = {
-        "good": special_to_ansi("[green][ＧＯＯＤ][normal]"),
-        "medium": special_to_ansi("[yellow][ＭＥＤ][normal]"),
-        "bad": special_to_ansi("[red][ＢＡＤ][normal]"),
+        "good": special_to_ansi("[green][G O O D][normal]"),
+        "medium": special_to_ansi("[yellow][M E D][normal]"),
+        "bad": special_to_ansi("[red][B A D][normal]"),
     }
 
     findings = []

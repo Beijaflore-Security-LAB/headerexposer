@@ -1,53 +1,30 @@
 # HeaderExposer
 
-Analyse the security of your website’s headers.
+## Module contents:
 
-The headerexposer module provides functions to analyse the security
-of a website’s headers.
+### __init__.py
 
-It can be loaded as a module, or directly ran from the commandline.
+This is the core of the module. It contains most of the module's logic.
 
-For commandline usage, see the output of:
-python3 -m headerexposer –help
+### __main__.py
 
-Basic module usage:
+This is the module's CLI. It contains the banner, the argument parsing logic, and the main CLI functions.
 
-```python
->>> import headerexposer as he
->>> import requests
-```
+### baseline.json
 
-```python
->>> baseline = he.load_baseline("baseline.json")
-```
+This is the most important file used for header analysis. It contains the headers' descriptions, analysis patterns, ratings, etc.
 
-```python
->>> resp = requests.get("https://google.com")
-```
+### baseline_schema.json
 
-```python
->>> findings = he.analyse_headers(resp.headers, baseline, short=True)
-```
+This file is used to validate baseline.json, and also serves as its documentation.
 
-```python
->>> print(he.tabulate_findings(findings))
-Header                     Value       Rating      Explanation
--------------------------  ----------  ----------  ------------------
-Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
-                                                   absent.  It is
-                                                   recommended to set
-                                                   the header's value
-                                                   to "max-
-                                                   age=31536000;
-                                                   includeSubDomains;
-                                                   preload". This
-                                                   will tell users'
-                                                   browsers that...
-...
-```
+### old.py
 
+This soon-to-be-removed file contains a portion of the old code for reference purposes.
 
-### headerexposer.headerexposer.analyse_header(header_value: Any, header_baseline: dict)
+## Module documentation:
+
+### headerexposer.analyse_header(header_value: Any, header_baseline: dict)
 Analyses a single valid header according to the baseline.
 
 
@@ -68,7 +45,7 @@ Analyses a single valid header according to the baseline.
 
 
 
-### headerexposer.headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False)
+### headerexposer.analyse_headers(headers: dict, baseline: dict, short: bool = False)
 Analyse response headers according to baseline.
 
 This function compares headers’ values to the baseline headers to
@@ -95,6 +72,7 @@ ratings and explanations associated in the baseline.
 
 * **Returns**
 
+    The list of findings, each finding being a dict like this:
     {
 
         “header”: (string) header_name,
@@ -107,14 +85,7 @@ ratings and explanations associated in the baseline.
 
 
 
-
-* **Return type**
-
-    The list of findings, each finding being a dict like this
-
-
-
-### headerexposer.headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False)
+### headerexposer.b_special_to_ansi(bstring: bytes, no_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in bytestrings.
 
 The following tags are currently supported:
@@ -138,7 +109,7 @@ The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False)
+### headerexposer.load_baseline(baseline_path: str, no_colors: Optional[bool] = False)
 Load and validate baseline.json.
 
 This function loads the baseline.json, replaces special markings
@@ -166,7 +137,7 @@ against baseline_schema.json.
 
 
 
-### headerexposer.headerexposer.parse_request_cookies(cookies: Optional[str])
+### headerexposer.parse_request_cookies(cookies: Optional[str])
 Parse a cookies string into a dict.
 
 
@@ -179,18 +150,18 @@ Parse a cookies string into a dict.
 
 * **Returns**
 
-    cookie_value pairs. Returns None if
+    A dict of cookie_name: cookie_value pairs. Returns None if
     cookies is None.
 
 
 
-* **Return type**
+* **Raises**
 
-    A dict of cookie_name
+    **IndexError if the input cookies string cannot be parsed.** – 
 
 
 
-### headerexposer.headerexposer.parse_request_headers(headers: Optional[str])
+### headerexposer.parse_request_headers(headers: Optional[str])
 Parse a headers string into a dict.
 
 
@@ -203,18 +174,18 @@ Parse a headers string into a dict.
 
 * **Returns**
 
-    header_value pairs. Returns an empty
+    A dict of header_name: header_value pairs. Returns an empty
     dict if headers is None.
 
 
 
-* **Return type**
+* **Raises**
 
-    A dict of header_name
+    **IndexError if the input headers string cannot be parsed.** – 
 
 
 
-### headerexposer.headerexposer.parse_request_parameters(params: Optional[str])
+### headerexposer.parse_request_parameters(params: Optional[str])
 Parse a parameters string into a dict.
 
 
@@ -227,18 +198,18 @@ Parse a parameters string into a dict.
 
 * **Returns**
 
-    parameter_value pairs. Returns None
+    A dict of parameter_name: parameter_value pairs. Returns None
     if params is None.
 
 
 
-* **Return type**
+* **Raises**
 
-    A dict of parameter_name
+    **IndexError if the input params string cannot be parsed.** – 
 
 
 
-### headerexposer.headerexposer.print_special(text: str)
+### headerexposer.print_special(text: str)
 Print a string after replacing its special tags.
 
 The tags such as [green] will be replaced with their corresponding
@@ -252,7 +223,41 @@ ANSI codes. The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False)
+### headerexposer.safe_wrap(text: str, width: int = 70, \*\*kwargs)
+Wrap a paragraph of text, returning a list of wrapped lines.
+
+Reformat the single paragraph in ‘text’ so it fits in lines of no
+more than ‘width’ columns, and return a list of wrapped lines.  By
+default, tabs in ‘text’ are expanded with string.expandtabs(), and
+all other whitespace characters (including newline) are converted
+to space.  See textwrap’s TextWrapper class for available keyword
+args to customize wrapping behavior.
+
+This function is actually a wrapper (no pun intended) around
+ansiwrap’s wrap() function. It ensures than no dangling ANSI code
+is present at the end of a line, in order to eliminate unwanted
+color behavior such as color being applied to surrounding columns
+in a table. When a non-zero ANSI code is found in a string without
+a closing zero ANSI code, a zero ANSI code is appended to the
+string and the previously found ANSI code is prepended to the next
+line.
+
+
+* **Parameters**
+
+    
+    * **text** – The long text to wrap.
+
+
+    * **width** – The maximum width of each line.
+
+
+    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    arguments to customize wrapper behavior.
+
+
+
+### headerexposer.special_to_ansi(string: str, no_colors: Optional[bool] = False)
 Replace tags to their corresponding ANSI codes in strings.
 
 The following tags are currently supported:
@@ -276,7 +281,7 @@ The following tags are currently supported:
 
 
 
-### headerexposer.headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str)
+### headerexposer.string_to_dict(string: str, delimiter_1: str, delimiter_2: str)
 Parse a string into a dict by splitting around delimiters.
 
 This function parses a string into a dict by splitting it around
@@ -307,14 +312,7 @@ delimiter_1 and ‘;’ as delimiter_2 will be parsed into
 
 * **Returns**
 
-    value pairs.
-
-
-
-* **Return type**
-
-    The dict of key
-
+    The dict of key: value pairs.
 
 
 * **Raises**
@@ -323,7 +321,7 @@ delimiter_1 and ‘;’ as delimiter_2 will be parsed into
 
 
 
-### headerexposer.headerexposer.tabulate_dict(dictionary: dict, max_width: int = None)
+### headerexposer.tabulate_dict(dictionary: dict, max_width: int = None)
 Format a dict as a two-columns table.
 
 This function formats a dict as a two-columns table, where the
@@ -349,7 +347,7 @@ max_width.
 
 
 
-### headerexposer.headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None)
+### headerexposer.tabulate_findings(findings: list, max_width: Optional[int] = None)
 Format the findings in a nice table for printing.
 
 
@@ -369,3 +367,32 @@ Format the findings in a nice table for printing.
 
     The string representing the nice findings table. Usually ready
     for printing.
+
+
+
+### headerexposer.wrap_and_join(text: str, width: int = 70, sep: str = '\\n', \*\*kwargs)
+Wrap a paragraph of text around a separator.
+
+Reformat the single paragraph in ‘text’ so it fits in lines of no
+more than ‘width’ columns, and return a list of wrapped lines
+joined around a separator.  By default, tabs in ‘text’ are expanded
+with string.expandtabs(), and all other whitespace characters
+(including newline) are converted to space.  See textwrap’s
+TextWrapper class for available keyword args to customize wrapping
+behavior.
+
+
+* **Parameters**
+
+    
+    * **text** – The long text to wrap.
+
+
+    * **width** – The maximum width of each line.
+
+
+    * **sep** – The delimiter around which the lines will be joined.
+
+
+    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    arguments to customize wrapper behavior.

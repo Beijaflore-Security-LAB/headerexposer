@@ -7,12 +7,22 @@ of a website’s headers.
 
 It can be loaded as a module, or directly ran from the commandline.
 
+It is designed to be cross-platforms, and was tested in various Linux/Windows terminals.
+
 # Requirements
 
-TODO
+These requirements will automatically be installed upon headerexposer's installation with pip.
+
+* ansiwrap: The standard textwrap module does not support ANSI codes, hence the use of ansiwrap as a replacement.
+* colorama: This is only used for color compatibility on Microsoft platforms.
+* jsonschema: This is used for json validation.
+* requests: Used in the module's CLI for performing HTTP requests.
+* tabulate: Used for printing nice tables.
+* urllib3: (normally a dependency of requests) This is only used to intentionally suppress a specific warning.
 
 # Installation
 
+Let pip take care of everything:
 ```
 python -m pip install headerexposer
 ```
@@ -106,7 +116,9 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It 
 
 # Authors
 
-Alexandre Janvrin (alexandre.janvrin@reseau.eseo.fr, ajanvrin520@beijaflore.com). I am currently a Penetration Tester and Cybersecurity Consultant at Beijaflore (https://www.beijaflore.com/en/)
+* Frédéric Proux, senior penetration tester at Beijaflore. I created the original headerexposer which helped Beijaflore's auditors to test the security of our customers' websites' headers for many years!
+* Alexandre Janvrin, penetration tester at Beijaflore. I improved upon Fred's design by adding the current pattern-matching system, many header explanations, the ability to send custom headers, cookies, parameters, etc. in the initial request, and nice cross-platform colored table outputs!
+https://www.beijaflore.com/en/
 
 # License
 

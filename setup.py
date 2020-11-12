@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="headerexposer",
-    version="0.8.a3",
+    version="0.8.a10",
     author="Alexandre Janvrin",
     author_email="alexandre.janvrin@reseau.eseo.fr",
     description="Analyse the security of your website's headers!",
@@ -24,7 +24,7 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Affero General Public License v3 or"
         " later (AGPLv3+)",
         "Natural Language :: English",
-        "Operating System :: POSIX :: Linux",
+        "Operating System :: OS Independent",
         "Topic :: Education :: Testing",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Security",
@@ -34,6 +34,7 @@ setuptools.setup(
     python_requires=">=3.7",
     install_requires=[
         "ansiwrap",
+        "colorama",
         "jsonschema",
         "requests",
         "tabulate",

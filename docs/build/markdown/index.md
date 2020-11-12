@@ -33,7 +33,7 @@ Basic module usage:
 >>> print(he.tabulate_findings(findings))
 Header                     Value       Rating      Explanation
 -------------------------  ----------  ----------  ------------------
-Strict-Transport-Security  Absent      [ＢＡＤ]    The header is
+Strict-Transport-Security  Absent      [B A D]    The header is
                                                    absent.  It is
                                                    recommended to set
                                                    the header's value
@@ -190,6 +190,12 @@ Parse a cookies string into a dict.
 
 
 
+* **Raises**
+
+    **IndexError if the input cookies string cannot be parsed.** – 
+
+
+
 ### headerexposer.parse_request_headers(headers: Optional[str])
 Parse a headers string into a dict.
 
@@ -211,6 +217,12 @@ Parse a headers string into a dict.
 * **Return type**
 
     A dict of header_name
+
+
+
+* **Raises**
+
+    **IndexError if the input headers string cannot be parsed.** – 
 
 
 
@@ -238,6 +250,12 @@ Parse a parameters string into a dict.
 
 
 
+* **Raises**
+
+    **IndexError if the input params string cannot be parsed.** – 
+
+
+
 ### headerexposer.print_special(text: str)
 Print a string after replacing its special tags.
 
@@ -249,6 +267,40 @@ ANSI codes. The following tags are currently supported:
 * **Parameters**
 
     **text** – The text to print.
+
+
+
+### headerexposer.safe_wrap(text: str, width: int = 70, \*\*kwargs)
+Wrap a paragraph of text, returning a list of wrapped lines.
+
+Reformat the single paragraph in ‘text’ so it fits in lines of no
+more than ‘width’ columns, and return a list of wrapped lines.  By
+default, tabs in ‘text’ are expanded with string.expandtabs(), and
+all other whitespace characters (including newline) are converted
+to space.  See textwrap’s TextWrapper class for available keyword
+args to customize wrapping behavior.
+
+This function is actually a wrapper (no pun intended) around
+ansiwrap’s wrap() function. It ensures than no dangling ANSI code
+is present at the end of a line, in order to eliminate unwanted
+color behavior such as color being applied to surrounding columns
+in a table. When a non-zero ANSI code is found in a string without
+a closing zero ANSI code, a zero ANSI code is appended to the
+string and the previously found ANSI code is prepended to the next
+line.
+
+
+* **Parameters**
+
+    
+    * **text** – The long text to wrap.
+
+
+    * **width** – The maximum width of each line.
+
+
+    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    arguments to customize wrapper behavior.
 
 
 
@@ -369,3 +421,32 @@ Format the findings in a nice table for printing.
 
     The string representing the nice findings table. Usually ready
     for printing.
+
+
+
+### headerexposer.wrap_and_join(text: str, width: int = 70, sep: str = '\\n', \*\*kwargs)
+Wrap a paragraph of text around a separator.
+
+Reformat the single paragraph in ‘text’ so it fits in lines of no
+more than ‘width’ columns, and return a list of wrapped lines
+joined around a separator.  By default, tabs in ‘text’ are expanded
+with string.expandtabs(), and all other whitespace characters
+(including newline) are converted to space.  See textwrap’s
+TextWrapper class for available keyword args to customize wrapping
+behavior.
+
+
+* **Parameters**
+
+    
+    * **text** – The long text to wrap.
+
+
+    * **width** – The maximum width of each line.
+
+
+    * **sep** – The delimiter around which the lines will be joined.
+
+
+    * **kwargs** – See help(“textwrap.TextWrapper”) for a list of keyword
+    arguments to customize wrapper behavior.
