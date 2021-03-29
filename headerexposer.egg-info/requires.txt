@@ -1,0 +1,6 @@
+ansiwrap
+colorama
+jsonschema
+requests
+tabulate
+urllib3

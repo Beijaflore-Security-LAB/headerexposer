@@ -1,0 +1,3 @@
+[console_scripts]
+headerexposer = headerexposer.__main__:main
+
