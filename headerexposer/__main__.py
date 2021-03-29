@@ -275,7 +275,7 @@ def main():
     # Okay this may seem ugly but I want this argument available
     # *everywhere*.
     for parser in [main_parser, analysis, demo, show]:
-        with resources.path("headerexposer", "baseline.json") as baseline_path:
+        with resources.path("headerexposer", "baseline_short.json") as baseline_path:
             parser.add_argument(
                 "-b",
                 "--baseline-path",
@@ -390,12 +390,11 @@ def main():
         output_options = parser.add_argument_group("output options")
 
         output_options.add_argument(
-            "-s",
-            "--short",
+            "--detailed",
             action="store_true",
-            help="Shorten the output. Do not print the request parameters,"
-            " do not print the response details,"
-            " do not print headers' descriptions, do not print references.",
+            help="Print additional details: the request parameters,"
+            " the response details,"
+            " headers' descriptions, and references.",
         )
 
         output_options.add_argument(
@@ -419,6 +418,14 @@ def main():
         main_parser.print_help()
 
     else:
+
+        # Hack dégeulasse de quand j'ai modifié le comportement par défaut
+        args.short = not args.detailed
+
+        if args.detailed:
+            with resources.path("headerexposer", "baseline_short.json") as baseline_path:
+                args.baseline_path = baseline_path
+
         baseline = he.load_baseline(
             args.baseline_path, args.no_explanation_colors
         )
