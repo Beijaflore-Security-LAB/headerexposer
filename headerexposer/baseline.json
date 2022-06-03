@@ -117,34 +117,6 @@
 			]
 		},
 		{
-			"name": "Content-Security-Policy",
-			"description": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate a wide range of attacks, including Cross-Site Scripting (XSS) and other cross-site injections. A Content Security Policy (CSP) requires careful tuning and precise definition of the policy. If enabled, CSP has significant impact on the way browsers render pages (e.g., inline JavaScript is disabled by default and must be explicitly allowed in the policy). Because of content security policies' inherent complexity, the rating can only be \"bad\" if no CSP header is present, and \"medium\" if a CSP header is present. No further analysis is made. As a general rule, whitelist-based policies are not considered secure as attackers can bypass whitelists, and resources are often loaded from Content Delivery Networks (CDNs) over which there is little control. The most efficient CSPs are nonce-based. Major frameworks usually support automatically generated nonce mechanisms. The best resource to learn how to build a best-in-class, nonce-based CSP would be [blue][underline]https://csp.withgoogle.com[normal].",
-			"case_sensitive_patterns": false,
-			"validation_pattern": "^.*$",
-			"default_rating": "medium",
-			"absent_rating": "bad",
-			"invalid_rating": "bad",
-			"absent_explanation": "[red]No CSP is defined, and the header is absent. [normal]As a good CSP is currently the best way to protect a website against XSS, [blue]building a CSP should be a top priority.[normal]",
-			"explanation_patterns": [{
-				"pattern": "^.*$",
-				"present": "[yellow]The header is present, but was not analysed. [normal]Please consider using [blue][underline]https://csp-evaluator.withgoogle.com/[normal] to assess the CSP header's value."
-			}],
-			"references": [
-				"https://owasp.org/www-project-secure-headers/#content-security-policy",
-				"https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html",
-				"https://content-security-policy.com/",
-				"https://www.w3.org/TR/CSP2/",
-				"https://www.w3.org/TR/CSP3/",
-				"https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
-				"https://csp.withgoogle.com/docs/index.html",
-				"https://csp.withgoogle.com/docs/adopting-csp.html",
-				"https://csp.withgoogle.com/docs/strict-csp.html",
-				"https://csp-evaluator.withgoogle.com/",
-				"https://scotthelme.co.uk/csp-cheat-sheet/",
-				"https://speakerdeck.com/lweichselbaum/csp-a-successful-mess-between-hardening-and-mitigation"
-			]
-		},
-		{
 			"name": "X-Permitted-Cross-Domain-Policies",
 			"description": "A cross-domain policy file is an XML document that grants a web client, such as Adobe Flash Player or Adobe Acrobat (though not necessarily limited to these), permission to handle data across domains. When clients request content hosted on a particular source domain and that content makes requests directed towards a domain other than its own, the remote domain needs to host a cross-domain policy file that grants access to the source domain, allowing the client to continue the transaction.",
 			"case_sensitive_patterns": false,
@@ -290,6 +262,50 @@
 			"description": "The Feature-Policy header provides a mechanism to allow and deny the use of browser features in its own frame, and in content within any <iframe> elements in the document. [blue]This header is still in an experimental state, and is subject to change at any time. [yellow]It has now been renamed to Permissions-Policy in the spec, but most browsers still process this name.[normal] The two most well supported values are [blue]microphone[normal] and [blue]camera[normal]. For all the other ones, please consult https://caniuse.com/?search=Feature-Policy.",
 			"case_sensitive_patterns": false,
 			"validation_pattern": "^(accelerometer|ambient-light-sensor|autoplay|battery|camera|display-capture|document-domain|encrypted-media|execution-while-not-rendered|execution-while-out-of-viewport|fullscreen|geolocation|gyroscope|layout-animations|legacy-image-formats|magnetometer|microphone|midi|navigation-override|oversized-images|payment|picture-in-picture|publickey-credentials-get|sync-xhr|usb|vr|wake-lock|screen-wake-lock|web-share|xr-spatial-tracking) +(|)( +(|))*()*$"
+		}, 
+		{
+			"name": "X-XSS-Protection",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^.*$",
+			"default_rating": "medium",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent.[normal]",
+			"explanation_patterns": [
+				{
+				"pattern": "^0$",
+				"present": "[red]The header is disabled."
+				},
+				{
+					"pattern": "^1$",
+					"present": "[yellow]The header is enabled. If a cross-site scripting attack is detected, the browser will sanitize the page."
+				},
+				{
+					"pattern": "^1; mode=block$",
+					"present": "[green]The header is enabled. Rather than sanitizing the page, the browser will prevent rendering of the page if an attack is detected."
+				}
+			],
+			"references": [
+				"https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection"
+			]
+		}, 
+		{
+			"name": "Cache-Control",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^.*$",
+			"default_rating": "good",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent.[normal]",
+			"explanation_patterns": [
+				{
+					"pattern": "^private, no-cache, no-store, max-age=0, no-transform$",
+					"present": "[green]The header is enabled."
+				}
+			],
+			"references": [
+				"https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
+			]
 		}
 	]
 }

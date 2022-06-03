@@ -78,19 +78,6 @@
 			}]
 		},
 		{
-			"name": "Content-Security-Policy",
-			"case_sensitive_patterns": false,
-			"validation_pattern": "^.*$",
-			"default_rating": "medium",
-			"absent_rating": "bad",
-			"invalid_rating": "bad",
-			"absent_explanation": "[red]No CSP is defined, and the header is absent.[normal]",
-			"explanation_patterns": [{
-				"pattern": "^.*$",
-				"present": "[yellow]The header is present, but was not analysed. [normal]Please consider using [blue][underline]https://csp-evaluator.withgoogle.com/[normal] to assess the CSP header's value."
-			}]
-		},
-		{
 			"name": "X-Permitted-Cross-Domain-Policies",
 			"case_sensitive_patterns": false,
 			"validation_pattern": "^(none|master-only|by-content-type|by-ftp-filename|all)$",
@@ -183,6 +170,44 @@
 				{
 					"pattern": "^(strict-origin-when-cross-origin|strict-origin|no-referrer)(?!.*( *, *)(origin|origin-when-cross-origin|same-origin|unsafe-url)( *, *.*?)*$).*$",
 					"rating": "good"
+				}
+			]
+		},
+		{
+			"name": "X-XSS-Protection",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^.*$",
+			"default_rating": "good",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent.[normal]",
+			"explanation_patterns": [
+				{
+					"pattern": "^0$",
+					"present": "[red]The header is disabled."
+				},
+				{
+					"pattern": "^1$",
+					"present": "[yellow]The header is enabled. If a cross-site scripting attack is detected, the browser will sanitize the page."
+				},
+				{
+					"pattern": "^1; mode=block$",
+					"present": "[green]The header is enabled. Rather than sanitizing the page, the browser will prevent rendering of the page if an attack is detected."
+				}
+			]
+		}, 
+		{
+			"name": "Cache-Control",
+			"case_sensitive_patterns": false,
+			"validation_pattern": "^.*$",
+			"default_rating": "medium",
+			"absent_rating": "bad",
+			"invalid_rating": "bad",
+			"absent_explanation": "[red]The header is absent.[normal]",
+			"explanation_patterns": [
+				{
+					"pattern": "^private, no-cache, no-store, max-age=0, no-transform$",
+					"present": "[green]The header is enabled."
 				}
 			]
 		}

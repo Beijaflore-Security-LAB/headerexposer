@@ -68,9 +68,10 @@ If you want to write a new baseline.json, consider using baseline_schema.json
 entation.                                                                                 
                                                                                           
 Authors:                                                                                  
-  * Frédéric Proux, senior pentester at Beijaflore                                        
-  * Alexandre Janvrin, pentester at Beijaflore                                            
-    (https://www.beijaflore.com/en/)                                                      
+  * Frédéric Proux, senior pentester at HeadMind Partners                                        
+  * Alexandre Janvrin, pentester at HeadMind Partners      
+  * Joyston Anton Raveendran, pentester at HeadMind Partners                                       
+    (https://www.headmind.com)                                                      
                                                                                           
 License: AGPLv3+                                                                          
                                                                                           
@@ -208,9 +209,9 @@ Strict-Transport-Security  Absent      [ＢＡＤ]    The header is absent.  It 
 
 # Authors
 
-* Frédéric Proux, senior penetration tester at Beijaflore. I created the original headerexposer which helped Beijaflore's auditors to test the security of our customers' websites' headers for many years!
-* Alexandre Janvrin, penetration tester at Beijaflore. I improved upon Fred's design by adding the current pattern-matching system, many header explanations, the ability to send custom headers, cookies, parameters, etc. in the initial request, and nice cross-platform colored table outputs!  
-https://www.beijaflore.com/en/
+* Frédéric Proux, senior penetration tester at HeadMind Partners. I created the original headerexposer which helped HeadMind Partners's auditors to test the security of our customers' websites' headers for many years!
+* Alexandre Janvrin, penetration tester at HeadMind Partners. I improved upon Fred's design by adding the current pattern-matching system, many header explanations, the ability to send custom headers, cookies, parameters, etc. in the initial request, and nice cross-platform colored table outputs!  
+https://www.headmind.com
 
 # License
 
