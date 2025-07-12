@@ -1,3 +1,7 @@
+⚠️ This repository is no longer maintained and has been archived.
+Please use the actively maintained fork by [@YohanBeattie](https://github.com/YohanBeattie/) instead:
+👉 https://github.com/YohanBeattie/headerexposer
+
 # HeaderExposer
 
 Analyse the security of your website’s headers!
