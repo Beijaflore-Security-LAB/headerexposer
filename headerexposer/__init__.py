@@ -66,7 +66,7 @@ import shutil
 from importlib import resources
 from typing import Any, List, Optional, Tuple, Union
 
-import ansiwrap  # type: ignore
+import textwrap  # type: ignore
 import colorama  # type: ignore
 import jsonschema  # type: ignore
 import tabulate
@@ -160,66 +160,72 @@ def print_special(text: str) -> None:
     """
     print(special_to_ansi(text))
 
+def strip_ansi(s: str) -> str:
+    ansi_pattern = re.compile(r'(\033|\u001b|\x1b)\[[0-9;]*m')
+    return ansi_pattern.sub('', s)
+
+def extract_ansi_tokens(s: str) -> List[Tuple[str, str]]:
+    """Returns a list of (text, ansi_code) preserving formatting."""
+    ansi_token_pattern = re.compile(r'((?:\033|\u001b|\x1b)\[[0-9;]*m)')
+    parts = ansi_token_pattern.split(s)
+    result = []
+    current_ansi = ""
+    for part in parts:
+        if ansi_token_pattern.match(part):
+            current_ansi = part
+        else:
+            result.append((part, current_ansi))
+    return result
 
 def safe_wrap(text: str, width: int = 70, **kwargs) -> List[str]:
-    """Wrap a paragraph of text, returning a list of wrapped lines.
-
-    Reformat the single paragraph in 'text' so it fits in lines of no
-    more than 'width' columns, and return a list of wrapped lines.  By
-    default, tabs in 'text' are expanded with string.expandtabs(), and
-    all other whitespace characters (including newline) are converted
-    to space.  See textwrap's TextWrapper class for available keyword
-    args to customize wrapping behavior.
-
-    This function is actually a wrapper (no pun intended) around
-    ansiwrap's wrap() function. It ensures than no dangling ANSI code
-    is present at the end of a line, in order to eliminate unwanted
-    color behavior such as color being applied to surrounding columns
-    in a table. When a non-zero ANSI code is found in a string without
-    a closing zero ANSI code, a zero ANSI code is appended to the
-    string and the previously found ANSI code is prepended to the next
-    line.
+    """
+    Wrap a paragraph while preserving ANSI color sequences.
 
     Args:
-        text:
-          The long text to wrap.
-        width:
-          The maximum width of each line.
-        kwargs:
-          See help("textwrap.TextWrapper") for a list of keyword
-          arguments to customize wrapper behavior.
+        text: The input string with ANSI codes.
+        width: The maximum line width.
+        kwargs: Passed to textwrap.TextWrapper.
+    Returns:
+        List of wrapped lines with proper ANSI handling.
     """
-    zero_ansi_pattern = re.compile(r"(\033|\u001b|\x1b)\[0m")
-    nonzero_ansi_pattern = re.compile(r"((\033|\u001b|\x1b)\[[1-9]+\d*m)")
+    stripped = strip_ansi(text)
+    wrapper = textwrap.TextWrapper(width=width, **kwargs)
+    wrapped_stripped_lines = wrapper.wrap(stripped)
 
-    lines = ansiwrap.wrap(text, width=width, **kwargs)
+    tokens = extract_ansi_tokens(text)
 
-    for line_index in range(len(lines)):
+    # Rebuild the wrapped lines using original tokens
+    lines = []
+    line = ""
+    current_length = 0
+    token_index = 0
+    current_ansi = ""
 
-        # We only care about the part of the sting after the last zero
-        # ANSI code
-        end_of_line = zero_ansi_pattern.split(lines[line_index])[-1]
+    for wrapped_line in wrapped_stripped_lines:
+        target_len = len(wrapped_line)
+        line = ""
+        current_length = 0
 
-        # Are there any non-zero ANSI code ?
-        matches = [m[0] for m in nonzero_ansi_pattern.findall(end_of_line)]
+        while token_index < len(tokens) and current_length < target_len:
+            segment, ansi = tokens[token_index]
+            seg_len = len(segment)
 
-        # If yes, we append a zero ANSI code to the string, and prepend
-        # The next one with any previously found ANSI codes. If there
-        # is no "next one", we'd rather suppress some formatting than
-        # completely override neighbours' formatting...
-        if matches:
-            lines[line_index] += "\033[0m"
+            if current_length + seg_len <= target_len:
+                line += ansi + segment
+                current_length += seg_len
+                token_index += 1
+            else:
+                take = target_len - current_length
+                if take > 0:
+                    line += ansi + segment[:take]
+                    tokens[token_index] = (segment[take:], ansi)
+                    current_length += take
+                break
 
-            try:
-                lines[line_index + 1] = "".join(
-                    matches + [lines[line_index + 1]]
-                )
-
-            except IndexError:
-                pass
+        line += "\033[0m"  # Always reset formatting at end of line
+        lines.append(line)
 
     return lines
-
 
 def wrap_and_join(
     text: str, width: int = 70, sep: str = "\n", **kwargs
